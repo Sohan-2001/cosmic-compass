@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { PalmUploadSchema, type PalmUploadFormValues } from '@/lib/schemas'; // Updated import
+import { PalmUploadSchema, type PalmUploadFormValues } from '@/lib/schemas'; 
 import { useState, type ChangeEvent } from 'react';
 import Image from 'next/image';
 import { Hand, UploadCloud } from 'lucide-react';
@@ -28,7 +28,7 @@ export function PalmUploadForm({ onSubmit, isLoading }: PalmUploadFormProps) {
       reader.onloadend = () => {
         const result = reader.result as string;
         setPreview(result);
-        fieldChange(result); // Pass the data URI to react-hook-form
+        fieldChange(result); 
       };
       reader.readAsDataURL(file);
     } else {
@@ -45,7 +45,7 @@ export function PalmUploadForm({ onSubmit, isLoading }: PalmUploadFormProps) {
           name="palmImage"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-headline text-lg">Upload Your Palm Image</FormLabel>
+              <FormLabel className="font-headline text-base md:text-lg">Upload Your Palm Image</FormLabel>
               <FormControl>
                  <Input 
                   type="file" 
@@ -65,7 +65,7 @@ export function PalmUploadForm({ onSubmit, isLoading }: PalmUploadFormProps) {
           </div>
         )}
 
-        <Button type="submit" disabled={isLoading || !preview} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-lg py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-150 ease-in-out">
+        <Button type="submit" disabled={isLoading || !preview} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-base md:text-lg py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-150 ease-in-out">
           {isLoading ? (
             <>
               <Hand className="mr-2 h-5 w-5 animate-pulse" />

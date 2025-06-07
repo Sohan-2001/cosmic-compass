@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { PalmUploadForm, type PalmUploadFormValues } from '@/components/forms/palm-upload-form';
@@ -41,7 +42,7 @@ export function PalmReadingSection() {
       {isLoading && (
          <div className="flex flex-col items-center justify-center gap-4 p-8 rounded-lg bg-card/50">
           <LoadingSpinner size={48} />
-          <p className="text-lg font-headline text-accent animate-pulse">
+          <p className="text-base md:text-lg font-headline text-accent animate-pulse">
             Deciphering the lines of your fate...
           </p>
         </div>

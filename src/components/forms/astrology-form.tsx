@@ -41,7 +41,6 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
              const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
             useEffect(() => {
-              // Sync from RHF (e.g., calendar pick or form reset) to local input string
               if (field.value) {
                 if (format(field.value, 'yyyy-MM-dd') !== dateInputValue) {
                   setDateInputValue(format(field.value, 'yyyy-MM-dd'));
@@ -71,11 +70,9 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
                     field.onChange(parsedDate);
                   }
                 } else {
-                  // Invalid date like 2023-02-30
                   if (field.value !== undefined) field.onChange(undefined);
                 }
               } else {
-                // Malformed input
                 if (field.value !== undefined) field.onChange(undefined);
               }
             };
@@ -87,12 +84,12 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
               } else {
                 setDateInputValue('');
               }
-              setIsCalendarOpen(false); // Close popover on select
+              setIsCalendarOpen(false); 
             };
 
             return (
               <FormItem className="flex flex-col">
-                <FormLabel className="font-headline text-lg">Date of Birth (YYYY-MM-DD)</FormLabel>
+                <FormLabel className="font-headline text-base md:text-lg">Date of Birth (YYYY-MM-DD)</FormLabel>
                 <div className="flex items-center gap-2">
                   <FormControl>
                     <Input
@@ -135,7 +132,7 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
           name="birthTime"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-headline text-lg">Time of Birth (HH:MM)</FormLabel>
+              <FormLabel className="font-headline text-base md:text-lg">Time of Birth (HH:MM)</FormLabel>
               <FormControl>
                 <Input type="time" {...field} className="w-full" />
               </FormControl>
@@ -149,7 +146,7 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
           name="birthLocation"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-headline text-lg">Place of Birth (City, Country)</FormLabel>
+              <FormLabel className="font-headline text-base md:text-lg">Place of Birth (City, Country)</FormLabel>
               <FormControl>
                 <Input placeholder="e.g., London, UK" {...field} className="w-full" />
               </FormControl>
@@ -157,7 +154,7 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isLoading} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-lg py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-150 ease-in-out">
+        <Button type="submit" disabled={isLoading} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-base md:text-lg py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-150 ease-in-out">
           {isLoading ? (
             <>
               <WandSparkles className="mr-2 h-5 w-5 animate-pulse" />

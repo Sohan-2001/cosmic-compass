@@ -14,14 +14,14 @@ export default function HomePage() {
           <TabsList className="grid w-full grid-cols-2 bg-primary/20 p-2 rounded-lg mb-6 relative z-40">
             <TabsTrigger 
               value="astrology" 
-              className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg py-3 text-base font-headline transition-all duration-300 ease-in-out"
+              className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg py-3 text-sm md:text-base font-headline transition-all duration-300 ease-in-out"
             >
               <Sparkles className="mr-2 h-5 w-5" />
               Astrological Insights
             </TabsTrigger>
             <TabsTrigger 
               value="palm-reading" 
-              className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg py-3 text-base font-headline transition-all duration-300 ease-in-out"
+              className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg py-3 text-sm md:text-base font-headline transition-all duration-300 ease-in-out"
             >
               <Hand className="mr-2 h-5 w-5" />
               Palm Reading
