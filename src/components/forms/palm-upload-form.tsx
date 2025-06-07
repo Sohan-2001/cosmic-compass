@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { PalmUploadSchema, type PalmUploadFormValues } from '@/lib/schemas'; 
 import { useState, type ChangeEvent } from 'react';
 import Image from 'next/image';
-import { Hand, UploadCloud } from 'lucide-react';
+import { Hand } from 'lucide-react';
 
 interface PalmUploadFormProps {
   onSubmit: (values: PalmUploadFormValues) => void;
@@ -65,7 +65,11 @@ export function PalmUploadForm({ onSubmit, isLoading }: PalmUploadFormProps) {
           </div>
         )}
 
-        <Button type="submit" disabled={isLoading || !preview} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-base md:text-lg py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-150 ease-in-out">
+        <Button 
+          type="submit" 
+          disabled={isLoading || !preview} 
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-headline text-base md:text-lg py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-150 ease-in-out"
+        >
           {isLoading ? (
             <>
               <Hand className="mr-2 h-5 w-5 animate-pulse" />
