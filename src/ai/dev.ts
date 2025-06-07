@@ -7,3 +7,4 @@ config();
 import '@/ai/flows/palm-reading.ts';
 import '@/ai/flows/event-prediction.ts'; // This now handles yearly predictions
 import '@/ai/flows/monthly-forecast.ts';
+import '@/ai/flows/translate-text-flow.ts';
