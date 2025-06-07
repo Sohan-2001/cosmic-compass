@@ -1,8 +1,8 @@
 
 'use server';
-import { palmReading, type PalmReadingInput } from '@/ai/flows/palm-reading';
+import { palmReading, type PalmReadingInput, type PalmReadingOutput } from '@/ai/flows/palm-reading';
 import type { PalmReadingReport } from '@/lib/types';
-import type { PalmUploadFormValues } from '@/lib/schemas'; // Updated import
+import type { PalmUploadFormValues } from '@/lib/schemas';
 
 export async function getPalmReadingAction(
   values: PalmUploadFormValues
@@ -12,17 +12,25 @@ export async function getPalmReadingAction(
       palmImageDataUri: values.palmImage,
     };
 
-    const result = await palmReading(palmReadingInput);
+    const result: PalmReadingOutput = await palmReading(palmReadingInput);
 
-    if (!result?.reading) {
-      return { error: "Failed to generate palm reading. Your destiny is currently unreadable." };
+    if (result.error) {
+      return { error: result.error };
+    }
+    
+    if (!result.summary && !result.detailedAnalysis && (!result.keyPredictions || result.keyPredictions.length === 0)) {
+        return { error: "Failed to generate a complete palm reading. Your destiny is currently unreadable or the AI response was incomplete." };
     }
 
     return {
-      reading: result.reading,
+      summary: result.summary || null,
+      keyPredictions: result.keyPredictions || null,
+      detailedAnalysis: result.detailedAnalysis || null,
     };
+
   } catch (error) {
     console.error("Error fetching palm reading:", error);
-    return { error: "An unexpected error occurred while reading your palm. Please try again." };
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return { error: `An unexpected error occurred while reading your palm: ${errorMessage}. Please try again.` };
   }
 }

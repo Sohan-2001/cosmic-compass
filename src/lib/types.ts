@@ -9,5 +9,8 @@ export interface CombinedAstrologyReport {
 }
 
 export interface PalmReadingReport {
-  reading?: string | null;
+  summary?: string | null;
+  keyPredictions?: string[] | null;
+  detailedAnalysis?: string | null;
+  error?: string | null;
 }
