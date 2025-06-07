@@ -13,7 +13,7 @@ export default function HomePage() {
           <h2 className="text-4xl md:text-5xl font-headline text-accent mb-6">
             Welcome to Cosmic Compass
           </h2>
-          <p className="text-lg md:text-xl text-foreground/80 mb-6 max-w-3xl text-left">
+          <p className="text-lg md:text-xl text-foreground/80 mb-6 max-w-3xl mx-auto">
             Navigate your life's journey with insights from the stars and the wisdom hidden in your hands. Cosmic Compass offers personalized astrological forecasts and detailed palm readings to illuminate your path.
           </p>
           <div className="space-y-1">
