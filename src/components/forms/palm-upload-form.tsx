@@ -51,7 +51,7 @@ export function PalmUploadForm({ onSubmit, isLoading }: PalmUploadFormProps) {
                   type="file" 
                   accept="image/*" 
                   onChange={(e) => handleFileChange(e, field.onChange)} 
-                  className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                  className="w-full h-12 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                 />
               </FormControl>
               <FormMessage />
@@ -68,7 +68,7 @@ export function PalmUploadForm({ onSubmit, isLoading }: PalmUploadFormProps) {
         <Button 
           type="submit" 
           disabled={isLoading || !preview} 
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-headline text-base md:text-lg py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-150 ease-in-out"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-headline text-base md:text-lg py-3 md:py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-150 ease-in-out"
         >
           {isLoading ? (
             <>
