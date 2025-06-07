@@ -36,14 +36,14 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
           name="birthDate"
           render={({ field }) => {
             const [dateInputValue, setDateInputValue] = useState<string>(
-              field.value ? format(field.value, 'yyyy-MM-dd') : ''
+              field.value ? format(field.value, 'dd-MM-yyyy') : ''
             );
              const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
             useEffect(() => {
               if (field.value) {
-                if (format(field.value, 'yyyy-MM-dd') !== dateInputValue) {
-                  setDateInputValue(format(field.value, 'yyyy-MM-dd'));
+                if (format(field.value, 'dd-MM-yyyy') !== dateInputValue) {
+                  setDateInputValue(format(field.value, 'dd-MM-yyyy'));
                 }
               } else {
                  if (dateInputValue !== '') {
@@ -62,11 +62,11 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
                 if (field.value !== undefined) field.onChange(undefined);
                 return;
               }
-              const yyyyMMddRegex = /^\d{4}-\d{2}-\d{2}$/;
-              if (yyyyMMddRegex.test(dateInputValue)) {
-                const parsedDate = parse(dateInputValue, 'yyyy-MM-dd', new Date());
-                if (isValid(parsedDate) && format(parsedDate, 'yyyy-MM-dd') === dateInputValue) {
-                  if (!field.value || format(parsedDate, 'yyyy-MM-dd') !== format(field.value, 'yyyy-MM-dd')) {
+              const ddMMyyyyRegex = /^\d{2}-\d{2}-\d{4}$/;
+              if (ddMMyyyyRegex.test(dateInputValue)) {
+                const parsedDate = parse(dateInputValue, 'dd-MM-yyyy', new Date());
+                if (isValid(parsedDate) && format(parsedDate, 'dd-MM-yyyy') === dateInputValue) {
+                  if (!field.value || format(parsedDate, 'dd-MM-yyyy') !== format(field.value, 'dd-MM-yyyy')) {
                     field.onChange(parsedDate);
                   }
                 } else {
@@ -80,7 +80,7 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
             const handleCalendarSelect = (selectedDate: Date | undefined) => {
               field.onChange(selectedDate);
               if (selectedDate) {
-                setDateInputValue(format(selectedDate, 'yyyy-MM-dd'));
+                setDateInputValue(format(selectedDate, 'dd-MM-yyyy'));
               } else {
                 setDateInputValue('');
               }
@@ -89,12 +89,12 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
 
             return (
               <FormItem className="flex flex-col">
-                <FormLabel className="font-headline text-base md:text-lg">Date of Birth (YYYY-MM-DD)</FormLabel>
+                <FormLabel className="font-headline text-base md:text-lg">Date of Birth (DD-MM-YYYY)</FormLabel>
                 <div className="flex items-center gap-2">
                   <FormControl>
                     <Input
                       type="text"
-                      placeholder="YYYY-MM-DD"
+                      placeholder="DD-MM-YYYY"
                       value={dateInputValue}
                       onChange={handleInputChange}
                       onBlur={handleInputBlur}
@@ -117,6 +117,9 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
                           date > new Date() || date < new Date('1900-01-01')
                         }
                         initialFocus
+                        captionLayout="dropdown-buttons"
+                        fromYear={1900}
+                        toYear={new Date().getFullYear()}
                       />
                     </PopoverContent>
                   </Popover>
