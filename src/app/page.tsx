@@ -1,3 +1,4 @@
+
 import { Header } from '@/components/layout/header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AstrologySection } from '@/components/features/astrology-section';
@@ -10,7 +11,7 @@ export default function HomePage() {
       <Header />
       <main className="flex-grow container mx-auto py-8 px-4">
         <Tabs defaultValue="astrology" className="w-full max-w-2xl mx-auto">
-          <TabsList className="grid w-full grid-cols-2 bg-primary/20 p-2 rounded-lg mb-6">
+          <TabsList className="grid w-full grid-cols-2 bg-primary/20 p-2 rounded-lg mb-6 relative z-40">
             <TabsTrigger 
               value="astrology" 
               className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg py-3 text-base font-headline transition-all duration-300 ease-in-out"
@@ -41,3 +42,4 @@ export default function HomePage() {
     </div>
   );
 }
+
