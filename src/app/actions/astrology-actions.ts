@@ -1,10 +1,9 @@
 
 'use server';
 import { getMonthlyForecast, type MonthlyForecastInput } from '@/ai/flows/monthly-forecast';
-import { getYearlyOutlook, type YearlyOutlookInput } from '@/ai/flows/yearly-outlook';
-import { predictEvents, type PredictEventsInput } from '@/ai/flows/event-prediction';
+import { getYearlyPredictions, type YearlyPredictionsInput } from '@/ai/flows/event-prediction'; // Updated import
 import type { CombinedAstrologyReport } from '@/lib/types';
-import type { AstrologyFormValues } from '@/lib/schemas'; // Updated import
+import type { AstrologyFormValues } from '@/lib/schemas';
 
 function formatDate(date: Date): string {
   return date.toISOString().split('T')[0];
@@ -15,7 +14,10 @@ export async function getCombinedAstrologyReportAction(
 ): Promise<CombinedAstrologyReport | { error: string }> {
   try {
     const birthDateStr = formatDate(values.birthDate);
-    const currentDateStr = formatDate(new Date());
+    const currentDate = new Date();
+    const currentDateStr = formatDate(currentDate);
+    const currentFullDateStr = currentDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const currentYear = currentDate.getFullYear();
 
     const monthlyForecastInput: MonthlyForecastInput = {
       birthDate: birthDateStr,
@@ -24,41 +26,37 @@ export async function getCombinedAstrologyReportAction(
       currentDate: currentDateStr,
     };
 
-    const yearlyOutlookInput: YearlyOutlookInput = {
+    const yearlyPredictionsInput: YearlyPredictionsInput = {
       birthDate: birthDateStr,
       birthTime: values.birthTime,
       birthLocation: values.birthLocation,
+      currentFullDate: currentFullDateStr,
+      currentYear: currentYear,
+      nextYear: currentYear + 1,
+      yearAfterNext: currentYear + 2,
     };
 
-    // For predictEvents, let's ask for events in the next 3 years, but not detailed monthly/yearly which we get separately.
-    const eventPredictionInput: PredictEventsInput = {
-      birthDate: birthDateStr,
-      birthTime: values.birthTime,
-      birthLocation: values.birthLocation,
-      numberOfYears: 3, 
-      upcomingMonth: false, // We get this from getMonthlyForecast
-      upcomingYear: false,  // We get this from getYearlyOutlook
-    };
-
-    const [monthlyResult, yearlyResult, eventsResult] = await Promise.all([
+    const [monthlyResult, yearlyResult] = await Promise.all([
       getMonthlyForecast(monthlyForecastInput),
-      getYearlyOutlook(yearlyOutlookInput),
-      predictEvents(eventPredictionInput),
+      getYearlyPredictions(yearlyPredictionsInput),
     ]);
     
-    // Check if any AI flow returned an error-like structure or empty output
-    // This is a basic check; actual error handling might depend on AI flow specifics
-    if (!monthlyResult?.monthlyForecast && !yearlyResult?.yearlyOverview && !eventsResult?.eventPredictions) {
-        return { error: "Failed to generate astrology report. The stars are একটু মেঘলা today." };
+    if (!monthlyResult && !yearlyResult) {
+        return { error: "Failed to generate astrology report. The stars are a bit cloudy today." };
     }
 
     return {
-      monthlyForecast: monthlyResult?.monthlyForecast || "Could not generate monthly forecast.",
-      yearlyOutlook: yearlyResult?.yearlyOverview || "Could not generate yearly outlook.",
-      significantEvents: eventsResult?.eventPredictions || "Could not predict significant events.",
+      thisMonthForecast: monthlyResult?.thisMonthForecast || "Could not generate this month's forecast.",
+      nextMonthForecast: monthlyResult?.nextMonthForecast || "Could not generate next month's forecast.",
+      thisYearOutlook: yearlyResult?.thisYearOutlook || `Could not generate outlook for ${currentYear}.`,
+      nextYearOutlook: yearlyResult?.nextYearOutlook || `Could not generate outlook for ${currentYear + 1}.`,
+      yearAfterNextOutlook: yearlyResult?.yearAfterNextOutlook || `Could not generate outlook for ${currentYear + 2}.`,
+      generalSignificantEvents: yearlyResult?.generalSignificantEvents || undefined, // Keep as undefined if not provided
     };
   } catch (error) {
     console.error("Error fetching astrology reports:", error);
-    return { error: "An unexpected error occurred while consulting the cosmos. Please try again." };
+    // It's good to check the actual error type if possible, but toString() is a safe bet.
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return { error: `An unexpected error occurred while consulting the cosmos: ${errorMessage}. Please try again.` };
   }
 }

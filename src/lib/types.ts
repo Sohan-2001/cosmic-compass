@@ -1,8 +1,11 @@
 
 export interface CombinedAstrologyReport {
-  monthlyForecast?: string | null;
-  yearlyOutlook?: string | null;
-  significantEvents?: string | null;
+  thisMonthForecast?: string | null;
+  nextMonthForecast?: string | null;
+  thisYearOutlook?: string | null;
+  nextYearOutlook?: string | null;
+  yearAfterNextOutlook?: string | null;
+  generalSignificantEvents?: string | null;
 }
 
 export interface PalmReadingReport {

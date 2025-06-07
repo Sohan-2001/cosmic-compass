@@ -6,7 +6,7 @@ import { getCombinedAstrologyReportAction } from '@/app/actions/astrology-action
 import type { CombinedAstrologyReport } from '@/lib/types';
 import { ReportCard } from './report-card';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarHeart, Crown, Zap, AlertTriangle, Sparkles } from 'lucide-react';
+import { CalendarHeart, Crown, Zap, AlertTriangle, Sparkles, TrendingUp, CalendarDays } from 'lucide-react';
 import { LoadingSpinner } from '../ui/loading-spinner';
 
 export function AstrologySection() {
@@ -15,11 +15,14 @@ export function AstrologySection() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const resultsContainerRef = useRef<HTMLDivElement>(null);
+  const [currentDisplayYear, setCurrentDisplayYear] = useState(new Date().getFullYear());
+
 
   const handleSubmit = async (values: AstrologyFormValues) => {
     setIsLoading(true);
     setError(null);
     setResults(null);
+    setCurrentDisplayYear(new Date(values.birthDate).getFullYear()); // Or simply new Date().getFullYear() if you want current context years
 
     const response = await getCombinedAstrologyReportAction(values);
 
@@ -32,6 +35,9 @@ export function AstrologySection() {
       });
     } else {
       setResults(response);
+      // It's good practice to derive years for titles from a single source if possible
+      // For simplicity, we'll use new Date().getFullYear() for titles
+      setCurrentDisplayYear(new Date().getFullYear());
     }
     setIsLoading(false);
   };
@@ -67,19 +73,34 @@ export function AstrologySection() {
             <Sparkles className="h-6 w-6" />
             Your Astrological Insights
           </h2>
-          {results.monthlyForecast && (
-            <ReportCard title="Monthly Forecast" icon={<CalendarHeart className="h-6 w-6" />}>
-              <p className="whitespace-pre-wrap">{results.monthlyForecast}</p>
+          {results.thisMonthForecast && (
+            <ReportCard title="This Month's Forecast" icon={<CalendarDays className="h-6 w-6" />}>
+              <p className="whitespace-pre-wrap">{results.thisMonthForecast}</p>
             </ReportCard>
           )}
-          {results.yearlyOutlook && (
-            <ReportCard title="Yearly Outlook" icon={<Crown className="h-6 w-6" />}>
-              <p className="whitespace-pre-wrap">{results.yearlyOutlook}</p>
+          {results.nextMonthForecast && (
+            <ReportCard title="Next Month's Forecast" icon={<CalendarHeart className="h-6 w-6" />}>
+              <p className="whitespace-pre-wrap">{results.nextMonthForecast}</p>
             </ReportCard>
           )}
-          {results.significantEvents && (
-            <ReportCard title="Significant Events Prediction" icon={<Zap className="h-6 w-6" />}>
-              <p className="whitespace-pre-wrap">{results.significantEvents}</p>
+          {results.thisYearOutlook && (
+            <ReportCard title={`This Year's Outlook (${currentDisplayYear})`} icon={<Crown className="h-6 w-6" />}>
+              <p className="whitespace-pre-wrap">{results.thisYearOutlook}</p>
+            </ReportCard>
+          )}
+          {results.nextYearOutlook && (
+            <ReportCard title={`Next Year's Outlook (${currentDisplayYear + 1})`} icon={<TrendingUp className="h-6 w-6" />}>
+              <p className="whitespace-pre-wrap">{results.nextYearOutlook}</p>
+            </ReportCard>
+          )}
+          {results.yearAfterNextOutlook && (
+            <ReportCard title={`Outlook for ${currentDisplayYear + 2}`} icon={<Zap className="h-6 w-6" />}>
+              <p className="whitespace-pre-wrap">{results.yearAfterNextOutlook}</p>
+            </ReportCard>
+          )}
+          {results.generalSignificantEvents && (
+            <ReportCard title="Other Significant Events" icon={<Sparkles className="h-6 w-6" />}>
+              <p className="whitespace-pre-wrap">{results.generalSignificantEvents}</p>
             </ReportCard>
           )}
         </div>

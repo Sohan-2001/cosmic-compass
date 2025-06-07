@@ -1,17 +1,18 @@
+
 'use server';
 
 /**
- * @fileOverview Predicts significant upcoming life events based on astrological charts and transits.
+ * @fileOverview Predicts significant life events and provides yearly astrological outlooks.
  *
- * - predictEvents - A function that handles the event prediction process.
- * - PredictEventsInput - The input type for the predictEvents function.
- * - PredictEventsOutput - The return type for the predictEvents function.
+ * - getYearlyPredictions - A function that handles the yearly prediction process.
+ * - YearlyPredictionsInput - The input type for the getYearlyPredictions function.
+ * - YearlyPredictionsOutput - The return type for the getYearlyPredictions function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const PredictEventsInputSchema = z.object({
+const YearlyPredictionsInputSchema = z.object({
   birthDate: z
     .string()
     .describe('The date of birth in ISO 8601 format (YYYY-MM-DD).'),
@@ -19,46 +20,50 @@ const PredictEventsInputSchema = z.object({
     .string()
     .describe('The time of birth in HH:mm format (24-hour clock).'),
   birthLocation: z.string().describe('The location of birth (e.g., city, country).'),
-  upcomingMonth: z.boolean().optional().describe('Predict for the upcoming month.'),
-  upcomingYear: z.boolean().optional().describe('Predict for the upcoming year.'),
-  numberOfYears: z.number().optional().describe('Predict for the next n number of years.')
+  currentFullDate: z.string().describe('The current full date (e.g., "July 26, 2024") to establish context for "this year", "next year".'),
+  currentYear: z.number().describe('The current calendar year for context.'),
+  nextYear: z.number().describe('The next calendar year for context.'),
+  yearAfterNext: z.number().describe('The calendar year after the next for context.'),
 });
-export type PredictEventsInput = z.infer<typeof PredictEventsInputSchema>;
+export type YearlyPredictionsInput = z.infer<typeof YearlyPredictionsInputSchema>;
 
-const PredictEventsOutputSchema = z.object({
-  monthlyForecast: z.string().optional().describe('Astrological insights for the current and upcoming month.'),
-  yearlyOutlook: z.string().optional().describe('Brief yearly astrological overviews.'),
-  eventPredictions: z.string().describe('Predictions of significant upcoming life events.'),
+const YearlyPredictionsOutputSchema = z.object({
+  thisYearOutlook: z.string().describe('Brief astrological overview for the current calendar year ({{{currentYear}}}).'),
+  nextYearOutlook: z.string().describe('Brief astrological overview for the next calendar year ({{{nextYear}}}).'),
+  yearAfterNextOutlook: z.string().describe('Brief astrological overview for the calendar year after next ({{{yearAfterNext}}}).'),
+  generalSignificantEvents: z.string().optional().describe('Brief predictions of any other significant life events for the next 3 years not covered by the yearly summaries.'),
 });
-export type PredictEventsOutput = z.infer<typeof PredictEventsOutputSchema>;
+export type YearlyPredictionsOutput = z.infer<typeof YearlyPredictionsOutputSchema>;
 
-export async function predictEvents(input: PredictEventsInput): Promise<PredictEventsOutput> {
-  return predictEventsFlow(input);
+export async function getYearlyPredictions(input: YearlyPredictionsInput): Promise<YearlyPredictionsOutput> {
+  return yearlyPredictionsFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: 'predictEventsPrompt',
-  input: {schema: PredictEventsInputSchema},
-  output: {schema: PredictEventsOutputSchema},
-  prompt: `You are an expert astrologer specializing in predicting significant life events based on astrological charts and transits.
+  name: 'yearlyPredictionsPrompt',
+  input: {schema: YearlyPredictionsInputSchema},
+  output: {schema: YearlyPredictionsOutputSchema},
+  prompt: `You are an expert astrologer.
+Given the birth details:
+Birth Date: {{{birthDate}}}
+Birth Time: {{{birthTime}}}
+Birth Location: {{{birthLocation}}}
 
-  Given the following birth details, predict significant upcoming life events.
+And the current date context: {{{currentFullDate}}}
 
-  Birth Date: {{{birthDate}}}
-  Birth Time: {{{birthTime}}}
-  Birth Location: {{{birthLocation}}}
-
-  {% if upcomingMonth %}Predict astrological insights for the current and upcoming month, focusing on major transits and their potential effects.{% endif %}
-  {% if upcomingYear %}Provide brief yearly astrological overviews, highlighting key planetary influences and potential life themes.{% endif %}
-  {% if numberOfYears %}Predict significant upcoming life events for the next {{{numberOfYears}}} years.{% endif %}
-  `,
+Provide the following astrological insights. Ensure each outlook is brief:
+1.  **This Year's Outlook ({{{currentYear}}}):** A brief astrological overview for the current calendar year {{{currentYear}}}, highlighting key planetary influences and potential life themes.
+2.  **Next Year's Outlook ({{{nextYear}}}):** A brief astrological overview for the next calendar year {{{nextYear}}}, highlighting key planetary influences and potential life themes.
+3.  **Year After Next's Outlook ({{{yearAfterNext}}}):** A brief astrological overview for the calendar year {{{yearAfterNext}}}, highlighting key planetary influences and potential life themes.
+4.  **Other Significant Events (Optional):** Briefly mention any other particularly significant life events predicted for the next 3 years that aren't fully captured in the yearly summaries. If none, this can be omitted or stated as such.
+`,
 });
 
-const predictEventsFlow = ai.defineFlow(
+const yearlyPredictionsFlow = ai.defineFlow(
   {
-    name: 'predictEventsFlow',
-    inputSchema: PredictEventsInputSchema,
-    outputSchema: PredictEventsOutputSchema,
+    name: 'yearlyPredictionsFlow',
+    inputSchema: YearlyPredictionsInputSchema,
+    outputSchema: YearlyPredictionsOutputSchema,
   },
   async input => {
     const {output} = await prompt(input);
