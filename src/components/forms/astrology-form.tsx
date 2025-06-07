@@ -4,13 +4,12 @@ import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+// Removed Calendar and Popover imports
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format, parse, isValid } from 'date-fns';
-import { CalendarIcon, WandSparkles } from 'lucide-react';
+import { WandSparkles } from 'lucide-react'; // Removed CalendarIcon
 import { AstrologyFormSchema, type AstrologyFormValues } from '@/lib/schemas';
 
 interface AstrologyFormProps {
@@ -35,26 +34,46 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
           control={form.control}
           name="birthDate"
           render={({ field }) => {
-            const [dateInputValue, setDateInputValue] = useState<string>(
-              field.value ? format(field.value, 'dd-MM-yyyy') : ''
-            );
-             const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+            // Local state for the input string value
+            const [dateInputValue, setDateInputValue] = useState<string>('');
 
             useEffect(() => {
-              if (field.value) {
-                if (format(field.value, 'dd-MM-yyyy') !== dateInputValue) {
-                  setDateInputValue(format(field.value, 'dd-MM-yyyy'));
+              // Sync from RHF's field.value (Date object) to local dateInputValue (string)
+              // This is mainly for initial values or programmatic changes to RHF state.
+              if (field.value instanceof Date && isValid(field.value)) {
+                const formattedDateFromRHF = format(field.value, 'dd-MM-yyyy');
+                if (dateInputValue !== formattedDateFromRHF) {
+                  setDateInputValue(formattedDateFromRHF);
                 }
-              } else {
-                 if (dateInputValue !== '') {
-                    setDateInputValue('');
-                 }
+              } else if (!field.value && dateInputValue) {
+                // If RHF date is cleared (e.g. invalid on blur, form reset),
+                // and input has text that was a valid date, clear input text.
+                const parsedInput = parse(dateInputValue, 'dd-MM-yyyy', new Date());
+                if (isValid(parsedInput) && format(parsedInput, 'dd-MM-yyyy') === dateInputValue) {
+                  setDateInputValue('');
+                }
               }
             // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [field.value]);
 
+
             const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-              setDateInputValue(e.target.value);
+              let rawValue = e.target.value;
+              const digitsOnly = rawValue.replace(/[^0-9]/g, '');
+              
+              let formattedValue = "";
+
+              if (digitsOnly.length > 0) {
+                formattedValue = digitsOnly.substring(0, Math.min(2, digitsOnly.length));
+              }
+              if (digitsOnly.length > 2) {
+                formattedValue += "-" + digitsOnly.substring(2, Math.min(4, digitsOnly.length));
+              }
+              if (digitsOnly.length > 4) {
+                formattedValue += "-" + digitsOnly.substring(4, Math.min(8, digitsOnly.length)); // DDMMYYYY (8 digits)
+              }
+              
+              setDateInputValue(formattedValue);
             };
 
             const handleInputBlur = () => {
@@ -62,11 +81,11 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
                 if (field.value !== undefined) field.onChange(undefined);
                 return;
               }
-              const ddMMyyyyRegex = /^\d{2}-\d{2}-\d{4}$/;
+              const ddMMyyyyRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
               if (ddMMyyyyRegex.test(dateInputValue)) {
                 const parsedDate = parse(dateInputValue, 'dd-MM-yyyy', new Date());
                 if (isValid(parsedDate) && format(parsedDate, 'dd-MM-yyyy') === dateInputValue) {
-                  if (!field.value || format(parsedDate, 'dd-MM-yyyy') !== format(field.value, 'dd-MM-yyyy')) {
+                  if (!field.value || format(parsedDate, 'yyyy-MM-dd') !== format(field.value, 'yyyy-MM-dd')) {
                     field.onChange(parsedDate);
                   }
                 } else {
@@ -77,53 +96,20 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
               }
             };
             
-            const handleCalendarSelect = (selectedDate: Date | undefined) => {
-              field.onChange(selectedDate);
-              if (selectedDate) {
-                setDateInputValue(format(selectedDate, 'dd-MM-yyyy'));
-              } else {
-                setDateInputValue('');
-              }
-              setIsCalendarOpen(false); 
-            };
-
             return (
               <FormItem className="flex flex-col">
-                <FormLabel className="font-headline text-base md:text-lg">Date of Birth (DD-MM-YYYY)</FormLabel>
-                <div className="flex items-center gap-2">
-                  <FormControl>
-                    <Input
-                      type="text"
-                      placeholder="DD-MM-YYYY"
-                      value={dateInputValue}
-                      onChange={handleInputChange}
-                      onBlur={handleInputBlur}
-                      className="flex-grow"
-                    />
-                  </FormControl>
-                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant={'outline'} size="icon" className="shrink-0">
-                        <CalendarIcon className="h-4 w-4" />
-                        <span className="sr-only">Open calendar</span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={handleCalendarSelect}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date('1900-01-01')
-                        }
-                        initialFocus
-                        captionLayout="dropdown-buttons"
-                        fromYear={1900}
-                        toYear={new Date().getFullYear()}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                <FormLabel className="font-headline text-sm md:text-base">Date of Birth (DD-MM-YYYY)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="text"
+                    placeholder="DD-MM-YYYY"
+                    value={dateInputValue}
+                    onChange={handleInputChange}
+                    onBlur={handleInputBlur}
+                    className="w-full"
+                    maxLength={10} // DD-MM-YYYY is 10 chars
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             );
@@ -135,7 +121,7 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
           name="birthTime"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-headline text-base md:text-lg">Time of Birth (HH:MM)</FormLabel>
+              <FormLabel className="font-headline text-sm md:text-base">Time of Birth (HH:MM)</FormLabel>
               <FormControl>
                 <Input type="time" {...field} className="w-full" />
               </FormControl>
@@ -149,7 +135,7 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
           name="birthLocation"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-headline text-base md:text-lg">Place of Birth (City, Country)</FormLabel>
+              <FormLabel className="font-headline text-sm md:text-base">Place of Birth (City, Country)</FormLabel>
               <FormControl>
                 <Input placeholder="e.g., London, UK" {...field} className="w-full" />
               </FormControl>
@@ -160,7 +146,7 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
         <Button 
           type="submit" 
           disabled={isLoading} 
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-headline text-base md:text-lg py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-150 ease-in-out"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-headline text-sm md:text-base py-3 md:py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-150 ease-in-out"
         >
           {isLoading ? (
             <>
