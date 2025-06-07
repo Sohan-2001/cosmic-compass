@@ -35,11 +35,10 @@ export default function HomePage() {
           </TabsContent>
         </Tabs>
       </main>
-      <footer className="text-center py-6 border-t border-border/50 text-sm text-muted-foreground">
+      <footer className="text-center py-8 border-t border-border/50 text-sm text-muted-foreground">
         <p>&copy; {new Date().getFullYear()} Cosmic Compass. All rights reserved.</p>
-        <p className="font-headline">Let the stars guide your way.</p>
+        <p className="font-headline mt-1">Let the stars guide your way.</p>
       </footer>
     </div>
   );
 }
-

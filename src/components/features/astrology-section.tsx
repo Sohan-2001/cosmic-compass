@@ -1,12 +1,12 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { AstrologyForm, type AstrologyFormValues } from '@/components/forms/astrology-form';
 import { getCombinedAstrologyReportAction } from '@/app/actions/astrology-actions';
 import type { CombinedAstrologyReport } from '@/lib/types';
 import { ReportCard } from './report-card';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarHeart, Crown, Zap, AlertTriangle } from 'lucide-react';
+import { CalendarHeart, Crown, Zap, AlertTriangle, Sparkles } from 'lucide-react';
 import { LoadingSpinner } from '../ui/loading-spinner';
 
 export function AstrologySection() {
@@ -14,6 +14,7 @@ export function AstrologySection() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const resultsContainerRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async (values: AstrologyFormValues) => {
     setIsLoading(true);
@@ -35,6 +36,12 @@ export function AstrologySection() {
     setIsLoading(false);
   };
 
+  useEffect(() => {
+    if (results && !isLoading && resultsContainerRef.current) {
+      resultsContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [results, isLoading]);
+
   return (
     <div className="space-y-8">
       <AstrologyForm onSubmit={handleSubmit} isLoading={isLoading} />
@@ -55,7 +62,11 @@ export function AstrologySection() {
       )}
 
       {results && !isLoading && (
-        <div className="space-y-6">
+        <div ref={resultsContainerRef} className="space-y-6">
+          <h2 className="text-2xl md:text-3xl font-headline text-accent flex items-center gap-2 mb-4">
+            <Sparkles className="h-6 w-6" />
+            Your Astrological Insights
+          </h2>
           {results.monthlyForecast && (
             <ReportCard title="Monthly Forecast" icon={<CalendarHeart className="h-6 w-6" />}>
               <p className="whitespace-pre-wrap">{results.monthlyForecast}</p>
