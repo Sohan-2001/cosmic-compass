@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label'; // Added missing import
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { format, parse, isValid as isValidDate } from 'date-fns';
 import { WandSparkles } from 'lucide-react';
@@ -44,17 +44,11 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
                   setDateInputValue(formattedDateFromRHF);
                 }
               } else if (!field.value && dateInputValue) {
-                // If RHF value is cleared but input has text, check if text is a valid parseable date
-                // This handles cases where RHF might be cleared due to external validation/reset
-                // and we want the input to clear too if it's not a valid date itself.
                 const parsedInput = parse(dateInputValue, 'dd-MM-yyyy', new Date());
                 if (isValidDate(parsedInput) && format(parsedInput, 'dd-MM-yyyy') === dateInputValue) {
-                  // It was a valid date, but RHF is now empty, so maybe clear input too or let user edit
-                  // For now, let's clear it if RHF is explicitly undefined/null
-                } else {
-                  // dateInputValue is not a valid date according to RHF's clear action
+                  // It was a valid date, but RHF is now empty
                 }
-                 setDateInputValue(''); // Default to clearing if RHF is cleared and input has text
+                 setDateInputValue(''); 
               }
             // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [field.value]);
@@ -85,17 +79,14 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
               if (ddMMyyyyRegex.test(dateInputValue)) {
                 const parsedDate = parse(dateInputValue, 'dd-MM-yyyy', new Date());
                 if (isValidDate(parsedDate) && format(parsedDate, 'dd-MM-yyyy') === dateInputValue) {
-                  // Ensure we are not causing a loop by checking if date has actually changed
                   if (!field.value || format(parsedDate, 'yyyy-MM-dd') !== format(field.value, 'yyyy-MM-dd')) {
                     field.onChange(parsedDate);
                   }
                 } else {
-                  // Invalid date according to date-fns (e.g., 31-02-2023)
-                  if (field.value !== undefined) field.onChange(undefined); // Clear RHF if invalid
+                  if (field.value !== undefined) field.onChange(undefined); 
                 }
               } else {
-                // Regex failed (format is wrong)
-                if (field.value !== undefined) field.onChange(undefined); // Clear RHF if format is wrong
+                if (field.value !== undefined) field.onChange(undefined); 
               }
             };
             
@@ -104,13 +95,13 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
                 <FormLabel className="font-headline text-sm md:text-base">Date of Birth (DD-MM-YYYY)</FormLabel>
                 <FormControl>
                   <Input
-                    type="text" // Changed from date to text to allow custom formatting/parsing
+                    type="text" 
                     placeholder="DD-MM-YYYY"
                     value={dateInputValue}
                     onChange={handleInputChange}
-                    onBlur={handleInputBlur} // process date on blur
+                    onBlur={handleInputBlur} 
                     className="w-full"
-                    maxLength={10} // DD-MM-YYYY is 10 chars
+                    maxLength={10}
                   />
                 </FormControl>
                 <FormMessage />
@@ -123,35 +114,30 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
           control={form.control}
           name="birthTime"
           render={({ field }) => {
-            // Local state for 12-hour format time input and AM/PM switch
-            const [localDisplayTime, setLocalDisplayTime] = useState<string>(''); // HH:MM (12h)
+            const [localDisplayTime, setLocalDisplayTime] = useState<string>(''); 
             const [localIsPM, setLocalIsPM] = useState<boolean>(false);
 
-            // Effect to sync from RHF (24h) to local (12h + AM/PM) when field.value changes
             useEffect(() => {
-              const twentyFourHourTime = field.value; // This is from RHF, e.g., "14:30"
+              const twentyFourHourTime = field.value; 
               if (twentyFourHourTime && /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/.test(twentyFourHourTime)) {
                 const [h24, m24] = twentyFourHourTime.split(':').map(Number);
                 const newIsPM = h24 >= 12;
                 let h12 = h24 % 12;
-                if (h12 === 0) h12 = 12; // 00:xx -> 12 AM, 12:xx -> 12 PM
+                if (h12 === 0) h12 = 12; 
 
                 const newDisplayTime = `${String(h12).padStart(2, '0')}:${String(m24).padStart(2, '0')}`;
-                // Only update local state if it's different to prevent loops
                 if (newDisplayTime !== localDisplayTime) setLocalDisplayTime(newDisplayTime);
                 if (newIsPM !== localIsPM) setLocalIsPM(newIsPM);
               } else if (twentyFourHourTime === '' && (localDisplayTime !== '' || localIsPM !== false)) {
-                // If RHF time is cleared, clear local state too
                 setLocalDisplayTime('');
                 setLocalIsPM(false);
               }
             // eslint-disable-next-line react-hooks/exhaustive-deps
-            }, [field.value]); // Trigger only when RHF value changes
+            }, [field.value]); 
 
-            // Function to update RHF (24h) based on local 12h time and AM/PM
             const updateRHFTime = (timeStr: string, isPmVal: boolean) => {
               if (!timeStr) {
-                if(field.value !== '') field.onChange(''); // Update RHF only if it's not already empty
+                if(field.value !== '') field.onChange('');
                 return;
               }
               const timeParts = timeStr.split(':');
@@ -163,67 +149,58 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
               const minute = parseInt(timeParts[1], 10);
 
               if (isNaN(hour12) || isNaN(minute) || hour12 < 1 || hour12 > 12 || minute < 0 || minute > 59) {
-                if(field.value !== '') field.onChange(''); // Invalid 12h time format
+                if(field.value !== '') field.onChange(''); 
                 return;
               }
 
               let hour24 = hour12;
-              if (isPmVal && hour12 !== 12) { // PM and not 12 PM
+              if (isPmVal && hour12 !== 12) { 
                 hour24 += 12;
-              } else if (!isPmVal && hour12 === 12) { // AM and 12 AM (midnight)
+              } else if (!isPmVal && hour12 === 12) { 
                 hour24 = 0;
               }
-              // For 12 PM, hour12 is 12, isPmVal is true, hour24 remains 12
-              // For 1 AM to 11 AM, hour12 is 1-11, isPmVal is false, hour24 remains 1-11
 
               const formatted24HourTime = `${String(hour24).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-              if(field.value !== formatted24HourTime) field.onChange(formatted24HourTime); // Update RHF
+              if(field.value !== formatted24HourTime) field.onChange(formatted24HourTime);
             };
 
             const handleTimeInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               let value = e.target.value;
-              // Allow only digits and one colon
               const digitsAndColon = value.replace(/[^0-9:]/g, '');
               let [hoursStr = '', minutesStr = ''] = digitsAndColon.split(':');
 
-              // Limit length of hours and minutes
               hoursStr = hoursStr.slice(0, 2);
               minutesStr = minutesStr.slice(0, 2);
               
               let formattedTime = hoursStr;
-              // Auto-add colon if two digits entered for hours and not deleting, or if colon already typed
               if (digitsAndColon.includes(':') || (hoursStr.length === 2 && value.length > 2 && e.nativeEvent.inputType !== 'deleteContentBackward')) {
                  formattedTime += ':' + minutesStr;
               } else if (hoursStr.length === 2 && value.length === 2 && e.nativeEvent.inputType !== 'deleteContentBackward'){
-                 formattedTime += ':'; // Auto-add colon
+                 formattedTime += ':'; 
               }
               
-              setLocalDisplayTime(formattedTime.slice(0,5)); // "HH:MM" is 5 chars
+              setLocalDisplayTime(formattedTime.slice(0,5)); 
             };
             
             const handleTimeInputBlur = () => {
-                // On blur, ensure HH:MM format with leading zeros if necessary
                 const parts = localDisplayTime.split(':');
                 if (parts.length === 2) {
                     const h = String(parts[0]).padStart(2, '0');
                     const m = String(parts[1]).padStart(2, '0');
                     const properlyFormattedTime = `${h}:${m}`;
                     if (localDisplayTime !== properlyFormattedTime) {
-                         setLocalDisplayTime(properlyFormattedTime); // Update display
+                         setLocalDisplayTime(properlyFormattedTime); 
                     }
-                    updateRHFTime(properlyFormattedTime, localIsPM); // Then update RHF
+                    updateRHFTime(properlyFormattedTime, localIsPM); 
                 } else if (localDisplayTime === '') {
-                     updateRHFTime('', localIsPM); // Clear RHF if input is empty
+                     updateRHFTime('', localIsPM);
                 } else {
-                    // If partially filled or incorrectly formatted, attempt to parse or clear
-                    // For simplicity, we'll rely on the RHF validation to catch if it's not converted
-                    updateRHFTime(localDisplayTime, localIsPM); // This will likely clear if invalid
+                    updateRHFTime(localDisplayTime, localIsPM); 
                 }
             };
 
             const handleAmPmChange = (checked: boolean) => {
               setLocalIsPM(checked);
-              // Update RHF time when AM/PM changes, using current display time
               updateRHFTime(localDisplayTime, checked);
             };
 
@@ -233,13 +210,13 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
                 <div className="flex items-center gap-2">
                   <FormControl>
                     <Input
-                      type="text" // Manual text input
+                      type="text" 
                       placeholder="HH:MM (e.g. 09:30)"
                       value={localDisplayTime}
                       onChange={handleTimeInputChange}
-                      onBlur={handleTimeInputBlur} // Validate and update RHF on blur
-                      className="w-full md:w-auto" // Adjust width as needed
-                      maxLength={5} // HH:MM
+                      onBlur={handleTimeInputBlur} 
+                      className="w-full md:w-auto" 
+                      maxLength={5} 
                     />
                   </FormControl>
                   <div className="flex items-center space-x-2 p-2 rounded-md border border-input">
@@ -254,7 +231,7 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
                     </Label>
                   </div>
                 </div>
-                <FormMessage /> {/* This will show RHF errors for the birthTime field */}
+                <FormMessage /> 
               </FormItem>
             );
           }}
@@ -294,6 +271,3 @@ export function AstrologyForm({ onSubmit, isLoading }: AstrologyFormProps) {
     </Form>
   );
 }
-
-    
-    
