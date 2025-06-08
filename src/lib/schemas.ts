@@ -23,3 +23,9 @@ export const LifetimeHoroscopeFormSchema = z.object({
 });
 
 export type LifetimeHoroscopeFormValues = z.infer<typeof LifetimeHoroscopeFormSchema>;
+
+// Schema for Face Reading form
+export const FaceUploadSchema = z.object({
+  faceImage: z.string().min(1, "Face image is required."), // Expecting data URI
+});
+export type FaceUploadFormValues = z.infer<typeof FaceUploadSchema>;
