@@ -17,6 +17,7 @@ const availableLanguages = [
   { value: "French", label: "Français" },
   { value: "German", label: "Deutsch" },
   { value: "Hindi", label: "हिन्दी" },
+  { value: "Bengali", label: "বাংলা (Bangla)" },
 ];
 
 export function PalmReadingSection() {
