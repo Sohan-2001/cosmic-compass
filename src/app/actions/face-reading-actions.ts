@@ -3,14 +3,14 @@
 import { faceReading, type FaceReadingInput, type FaceReadingOutput } from '@/ai/flows/face-reading';
 import { translateText } from '@/ai/flows/translate-text-flow';
 import type { FaceReadingReport, FaceReadingReportTexts, ProminentFeature } from '@/lib/types';
-import type { FaceUploadFormValues } from '@/lib/schemas';
+// FaceUploadFormValues is for the client-side form, not directly for this action's input.
 
 export async function getFaceReadingAction(
-  values: FaceUploadFormValues
+  data: { faceImageUrl: string } // Expecting the blob URL
 ): Promise<FaceReadingReport | { error: string }> {
   try {
     const faceReadingInput: FaceReadingInput = {
-      faceImageDataUri: values.faceImage,
+      faceImageUrl: data.faceImageUrl,
     };
 
     const result: FaceReadingOutput = await faceReading(faceReadingInput);
@@ -53,8 +53,6 @@ export async function translateFaceReadingReportAction(
 
     const translateProminentFeature = async (feature: { feature: string; interpretation: string | null | undefined }): Promise<{ feature: string; interpretation: string | null | undefined }> => {
         const translatedInterpretation = await translateField(feature.interpretation);
-        // Feature name itself might not need translation, or could be translated if a dictionary approach was used.
-        // For simplicity, we are only translating the interpretation.
         return { feature: feature.feature, interpretation: translatedInterpretation };
     };
 

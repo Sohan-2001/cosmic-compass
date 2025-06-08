@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { FaceUploadSchema, type FaceUploadFormValues } from '@/lib/schemas'; 
-import { useState, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent, useEffect } from 'react';
 import NextImage from 'next/image';
 import { Smile } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -16,14 +16,12 @@ interface FaceUploadFormProps {
   isLoading: boolean;
 }
 
-// Helper function for sharpening (can be adjusted or removed if not desired for faces)
 function applySharpen(imageData: ImageData, width: number, height: number): ImageData {
   const { data } = imageData;
   const outputData = new Uint8ClampedArray(data.length);
-
   const kernel = [
     [0, -0.5, 0],
-    [-0.5, 3, -0.5], // Less aggressive sharpening than for palm lines
+    [-0.5, 3, -0.5],
     [0, -0.5, 0]
   ];
   const kernelSize = kernel.length;
@@ -32,12 +30,10 @@ function applySharpen(imageData: ImageData, width: number, height: number): Imag
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       let r = 0, g = 0, b = 0;
-
       for (let ky = 0; ky < kernelSize; ky++) {
         for (let kx = 0; kx < kernelSize; kx++) {
           const pixelY = y + (ky - halfKernelSize);
           const pixelX = x + (kx - halfKernelSize);
-
           if (pixelY >= 0 && pixelY < height && pixelX >= 0 && pixelX < width) {
             const offset = (pixelY * width + pixelX) * 4;
             const weight = kernel[ky][kx];
@@ -47,7 +43,6 @@ function applySharpen(imageData: ImageData, width: number, height: number): Imag
           }
         }
       }
-
       const outputOffset = (y * width + x) * 4;
       outputData[outputOffset] = Math.max(0, Math.min(255, r));
       outputData[outputOffset + 1] = Math.max(0, Math.min(255, g));
@@ -65,26 +60,36 @@ export function FaceUploadForm({ onSubmit, isLoading }: FaceUploadFormProps) {
   const form = useForm<FaceUploadFormValues>({
     resolver: zodResolver(FaceUploadSchema),
     defaultValues: {
-      faceImage: '',
+      faceImage: undefined, // RHF expects File or undefined
     }
   });
 
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void) => {
-    const file = event.target.files?.[0];
-    if (file) {
+  useEffect(() => {
+    // Clean up the object URL when the component unmounts or preview changes
+    let currentPreview = preview;
+    return () => {
+      if (currentPreview && currentPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(currentPreview);
+      }
+    };
+  }, [preview]);
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>, fieldChange: (value: File | undefined) => void) => {
+    const inputFile = event.target.files?.[0];
+    if (inputFile) {
       const reader = new FileReader();
       reader.onloadend = () => {
         const originalImageSrc = reader.result as string;
-
         const img = new window.Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
 
           if (!ctx) {
-            setPreview(originalImageSrc);
-            fieldChange(originalImageSrc);
-            toast({ title: "Image Processing Error", description: "Could not get canvas context. Using original image.", variant: "destructive" });
+            toast({ title: "Image Processing Error", description: "Could not get canvas context. Please try another image.", variant: "destructive" });
+            fieldChange(undefined);
+            if (preview) URL.revokeObjectURL(preview);
+            setPreview(null);
             return;
           }
 
@@ -105,40 +110,58 @@ export function FaceUploadForm({ onSubmit, isLoading }: FaceUploadFormProps) {
           }
           canvas.width = width;
           canvas.height = height;
-
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Optional: Apply sharpening - adjust kernel or remove if not desired for faces
           try {
             const imageData = ctx.getImageData(0, 0, width, height);
             const sharpenedData = applySharpen(imageData, width, height);
             ctx.putImageData(sharpenedData, 0, 0);
           } catch (e) {
             console.error("Error during image sharpening for face:", e);
-            // toast({ title: "Sharpening Opt.", description: "Proceeding with unsharpened version for face.", variant: "default" });
           }
           
-          const processedDataUrl = canvas.toDataURL('image/jpeg', 0.85); 
-
-          setPreview(processedDataUrl);
-          fieldChange(processedDataUrl);
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const processedFile = new File([blob], inputFile.name, { type: 'image/jpeg' });
+               // Validate against schema before setting
+              const validationResult = FaceUploadSchema.shape.faceImage.safeParse(processedFile);
+              if (validationResult.success) {
+                if (preview) URL.revokeObjectURL(preview);
+                setPreview(URL.createObjectURL(processedFile));
+                fieldChange(processedFile);
+              } else {
+                toast({ title: "Image Validation Failed", description: validationResult.error.errors[0]?.message || "Please select a valid image (JPG, PNG, WEBP, <5MB).", variant: "destructive" });
+                fieldChange(undefined);
+                if (preview) URL.revokeObjectURL(preview);
+                setPreview(null);
+              }
+            } else {
+              toast({ title: "Image Processing Error", description: "Could not process image to blob. Try another image.", variant: "destructive" });
+              fieldChange(undefined);
+              if (preview) URL.revokeObjectURL(preview);
+              setPreview(null);
+            }
+          }, 'image/jpeg', 0.85); // Convert to JPEG, 85% quality
         };
         img.onerror = () => {
-          setPreview(null);
-          fieldChange('');
           toast({ title: "Image Load Error", description: "Could not load the selected image file.", variant: "destructive" });
+          fieldChange(undefined);
+          if (preview) URL.revokeObjectURL(preview);
+          setPreview(null);
         };
         img.src = originalImageSrc;
       };
       reader.onerror = () => {
-          setPreview(null);
-          fieldChange('');
           toast({ title: "File Read Error", description: "Could not read the selected file.", variant: "destructive" });
+          fieldChange(undefined);
+          if (preview) URL.revokeObjectURL(preview);
+          setPreview(null);
       }
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(inputFile);
     } else {
+      fieldChange(undefined);
+      if (preview) URL.revokeObjectURL(preview);
       setPreview(null);
-      fieldChange('');
     }
   };
 
@@ -172,7 +195,7 @@ export function FaceUploadForm({ onSubmit, isLoading }: FaceUploadFormProps) {
 
         <Button 
           type="submit" 
-          disabled={isLoading || !preview} 
+          disabled={isLoading || !preview || !form.formState.isValid} 
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-headline text-base md:text-lg py-3 md:py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-150 ease-in-out"
         >
           {isLoading ? (

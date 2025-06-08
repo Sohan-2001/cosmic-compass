@@ -36,21 +36,63 @@ export function FaceReadingSection() {
     setDisplayedReport(null);
     setSelectedLanguage("English");
 
-    const response = await getFaceReadingAction(values);
+    if (!values.faceImage) {
+      setError("No face image provided.");
+      toast({ title: 'Error', description: 'Please upload an image.', variant: 'destructive' });
+      setIsLoading(false);
+      return;
+    }
 
-    if (response.error) {
-      setError(response.error);
+    try {
+      // 1. Upload image to Vercel Blob
+      const uploadResponse = await fetch(`/api/upload-face`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': values.faceImage.type,
+          'x-filename': values.faceImage.name,
+        },
+        body: values.faceImage,
+      });
+
+      if (!uploadResponse.ok) {
+        const uploadErrorData = await uploadResponse.json();
+        throw new Error(uploadErrorData.error || `Failed to upload image: ${uploadResponse.statusText}`);
+      }
+
+      const blobResult = await uploadResponse.json();
+      const faceImageUrl = blobResult.url;
+
+      if (!faceImageUrl) {
+        throw new Error("Image URL not returned from upload.");
+      }
+      
+      // 2. Call AI flow with the blob URL
+      const response = await getFaceReadingAction({ faceImageUrl });
+
+      if (response.error) {
+        setError(response.error);
+        toast({
+          title: 'Face Reading Error',
+          description: response.error,
+          variant: 'destructive',
+        });
+      } else {
+        setOriginalReport(response);
+        setDisplayedReport(response);
+        setError(null); 
+      }
+    } catch (uploadError: any) {
+      console.error("Error during image upload or AI processing:", uploadError);
+      const errorMessage = uploadError.message || "An unexpected error occurred during image upload or AI processing.";
+      setError(errorMessage);
       toast({
-        title: 'Face Reading Error',
-        description: response.error,
+        title: 'Processing Error',
+        description: errorMessage,
         variant: 'destructive',
       });
-    } else {
-      setOriginalReport(response);
-      setDisplayedReport(response);
-      setError(null); 
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleLanguageChange = async (lang: string) => {
@@ -111,7 +153,7 @@ export function FaceReadingSection() {
          <div className="flex flex-col items-center justify-center gap-4 p-8 rounded-lg bg-card/50">
           <LoadingSpinner size={48} />
           <p className="text-base md:text-lg font-headline text-accent animate-pulse">
-            {isLoading ? "Reading your facial expressions..." : "Translating your facial insights..."}
+            {isLoading ? (isTranslating ? "Translating your facial insights..." : "Reading your facial expressions...") : (isTranslating ? "Translating your facial insights..." : "")}
           </p>
         </div>
       )}

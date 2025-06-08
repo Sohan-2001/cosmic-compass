@@ -13,10 +13,11 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const FaceReadingInputSchema = z.object({
-  faceImageDataUri: z
+  faceImageUrl: z
     .string()
+    .url()
     .describe(
-      "A photo of a face, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "A publicly accessible URL to a photo of a face."
     ),
 });
 export type FaceReadingInput = z.infer<typeof FaceReadingInputSchema>;
@@ -47,7 +48,7 @@ const prompt = ai.definePrompt({
   input: {schema: FaceReadingInputSchema},
   output: {schema: FaceReadingOutputSchema},
   prompt: `You are an expert physiognomist with deep knowledge of traditional face reading.
-Analyze the provided face image: {{media url=faceImageDataUri}}
+Analyze the provided face image: {{media url=faceImageUrl}}
 
 Carefully examine the overall face shape, forehead, eyes, eyebrows, nose, mouth, lips, chin, and any other significant features.
 Based on your analysis, provide a personalized reading structured as follows:
@@ -57,7 +58,7 @@ Based on your analysis, provide a personalized reading structured as follows:
 3.  **personalityInsights**: List 3 to 6 key personality insights or traits directly suggested by the overall facial analysis.
 4.  **potentialLifeAspects**: Offer general insights into potential life aspects, strengths, or challenges as suggested by the combination of facial features (2-4 sentences).
 
-If you cannot analyze the image effectively (e.g., it's blurry, unclear, not a face, or features are obscured), or if you cannot perform a meaningful reading for any other reason, please set the 'error' field in your response explaining the issue. In such cases, the other fields can be omitted or left empty.
+If you cannot analyze the image effectively (e.g., it's blurry, unclear, not a face, features are obscured, or the image URL is inaccessible), or if you cannot perform a meaningful reading for any other reason, please set the 'error' field in your response explaining the issue. In such cases, the other fields can be omitted or left empty.
 Strive for insightful and authentic interpretations based on physiognomy principles. Ensure the tone is positive or neutral and constructive.`,
 });
 
@@ -95,4 +96,3 @@ const faceReadingFlow = ai.defineFlow(
     }
   }
 );
-
