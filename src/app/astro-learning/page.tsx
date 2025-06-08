@@ -2,7 +2,7 @@
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ChevronLeft, BookOpen, Sparkles, Sun, Moon, Home as HomeIcon } from 'lucide-react'; // Added icons
+import { ChevronLeft, BookOpen, Sparkles, Sun, Moon, Home as HomeIcon, Hand, AlignStartVertical } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -40,12 +40,14 @@ const planets = [
   { name: "Mars", symbol: "♂", keywords: "Action, desire, energy, aggression, courage" },
   { name: "Jupiter", symbol: "♃", keywords: "Expansion, luck, wisdom, optimism, abundance" },
   { name: "Saturn", symbol: "♄", keywords: "Structure, discipline, lessons, responsibility, limits" },
-  // Outer planets - often generational influences
-  // { name: "Uranus", symbol: "♅", keywords: "Innovation, rebellion, sudden change, originality" },
-  // { name: "Neptune", symbol: "♆", keywords: "Dreams, illusion, spirituality, compassion, deception" },
-  // { name: "Pluto", symbol: "♇", keywords: "Transformation, power, rebirth, subconscious forces" },
 ];
 
+const majorPalmLines = [
+    { name: "Heart Line", description: "Relates to emotions, love life, and relationships. It can indicate emotional stability and romantic perspectives." },
+    { name: "Head Line", description: "Represents intellect, learning style, communication, and knowledge. It shows how you approach thoughts and ideas." },
+    { name: "Life Line", description: "Indicates vitality, physical health, and major life changes. It doesn't predict lifespan but reflects life's journey and energy levels." },
+    { name: "Fate Line (Destiny Line)", description: "Not everyone has a clear Fate Line. It points to the degree to which life events outside your control affect your life path and career." },
+];
 
 export default function AstroLearningPage() {
   return (
@@ -64,14 +66,15 @@ export default function AstroLearningPage() {
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-headline text-accent mb-4 flex items-center justify-center">
             <BookOpen className="mr-3 h-10 w-10" />
-            Astro-Learning Hub
+            Learning Hub
           </h2>
           <p className="text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto">
-            Deepen your understanding of astrology with these foundational concepts.
+            Deepen your understanding of astrology and palmistry with these foundational concepts.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
+        <h3 className="text-3xl font-headline text-primary mb-6 text-center">Astrology Basics</h3>
+        <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           <Card className="bg-card/70 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center text-2xl font-headline text-primary">
@@ -97,7 +100,7 @@ export default function AstroLearningPage() {
             <CardContent className="text-foreground/80">
               <p className="mb-4">The zodiac is divided into 12 signs, each associated with specific personality traits and characteristics. Your "sun sign" is determined by the zodiac sign the Sun was in at your time of birth.</p>
               <Accordion type="single" collapsible className="w-full">
-                {zodiacSigns.slice(0, 4).map((sign, index) => ( // Show first 4 as example
+                {zodiacSigns.slice(0, 4).map((sign, index) => ( 
                   <AccordionItem value={`item-${index + 1}`} key={sign.name}>
                     <AccordionTrigger className="text-foreground/90 font-medium">{sign.symbol} {sign.name}</AccordionTrigger>
                     <AccordionContent>{sign.traits}</AccordionContent>
@@ -163,8 +166,62 @@ export default function AstroLearningPage() {
               </Accordion>
             </CardContent>
           </Card>
-
         </div>
+
+        <h3 className="text-3xl font-headline text-primary mb-6 text-center">Palmistry Basics</h3>
+        <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
+          <Card className="bg-card/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center text-2xl font-headline text-primary">
+                <Hand className="mr-2 h-6 w-6" /> What is Palmistry?
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-foreground/80 space-y-3">
+              <p>
+                Palmistry, also known as chiromancy, is the art of characterization and foretelling the future through the study of the palm. It involves examining the lines, mounts (fleshy bumps), and shapes of the hands and fingers.
+              </p>
+              <p>
+                Different features are believed to correspond to various aspects of a person's personality, life path, strengths, and weaknesses. While interpretations can vary, palmistry offers a unique lens for self-reflection.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center text-2xl font-headline text-primary">
+                <AlignStartVertical className="mr-2 h-6 w-6" /> The Major Lines
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-foreground/80">
+              <p className="mb-4">The most prominent features in palmistry are the major lines. Here are a few key ones:</p>
+              <Accordion type="single" collapsible className="w-full">
+                {majorPalmLines.map((line, index) => (
+                  <AccordionItem value={`palm-line-${index + 1}`} key={line.name}>
+                    <AccordionTrigger className="text-foreground/90 font-medium">{line.name}</AccordionTrigger>
+                    <AccordionContent>{line.description}</AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </CardContent>
+          </Card>
+
+           <Card className="bg-card/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center text-2xl font-headline text-primary">
+                <Sparkles className="mr-2 h-6 w-6" /> Mounts and Hand Shape
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-foreground/80 space-y-3">
+              <p>
+                <strong>Mounts:</strong> These are the fleshy pads on your palm, such as the Mount of Venus (base of the thumb), Mount of Jupiter (base of the index finger), etc. Each mount is associated with specific planetary energies and traits, like love, ambition, or creativity.
+              </p>
+              <p>
+                <strong>Hand Shape:</strong> The overall shape of the hand (e.g., square, long, spatulate, conic) and the length/shape of fingers are also considered. These can provide general insights into temperament and approach to life. For example, square hands might suggest practicality, while long fingers might indicate a detail-oriented nature.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
       </main>
       <footer className="text-center py-8 border-t border-border/50 text-sm text-muted-foreground">
         <p>&copy; {new Date().getFullYear()} Cosmic Compass. All rights reserved.</p>
