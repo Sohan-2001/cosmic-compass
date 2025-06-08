@@ -2,6 +2,7 @@
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import Image from 'next/image'; // Import NextImage
 import { ChevronLeft, BookOpen, Sparkles, Sun, Moon, Home as HomeIcon, Hand, AlignStartVertical } from 'lucide-react';
 import {
   Card,
@@ -168,7 +169,7 @@ export default function AstroLearningPage() {
           </Card>
         </div>
 
-        <h3 className="text-3xl font-headline text-primary mb-6 text-center">Palmistry Basics</h3>
+        <h3 className="text-3xl font-headline text-primary my-10 text-center">Palmistry Basics</h3>
         <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
           <Card className="bg-card/70 backdrop-blur-sm">
             <CardHeader>
@@ -202,6 +203,16 @@ export default function AstroLearningPage() {
                   </AccordionItem>
                 ))}
               </Accordion>
+              <div className="my-6 flex justify-center">
+                <Image 
+                  src="/palm-reading-lines-right-hand_694796-334.png" 
+                  alt="Diagram of major palm lines" 
+                  width={350} 
+                  height={474} // Adjusted to a more common aspect ratio for a palm image
+                  className="rounded-md border border-border shadow-lg"
+                  data-ai-hint="palmistry diagram" 
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -220,6 +231,28 @@ export default function AstroLearningPage() {
               </p>
             </CardContent>
           </Card>
+
+          <Card className="bg-card/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center text-2xl font-headline text-primary">
+                 <Sparkles className="mr-2 h-6 w-6" /> Further Exploration
+              </CardTitle>
+            </CardHeader>
+             <CardContent className="text-foreground/80 space-y-3">
+                <p>
+                    Palmistry is a vast field! Beyond the major lines and mounts, experienced readers also consider:
+                </p>
+                <ul className="list-disc pl-5 space-y-1">
+                    <li>Minor lines (e.g., intuition line, health line)</li>
+                    <li>Markings (stars, crosses, squares, grilles)</li>
+                    <li>Fingerprints</li>
+                    <li>The texture and flexibility of the skin</li>
+                </ul>
+                <p>
+                    Each detail adds another layer to the reading, creating a holistic view of an individual's potential and personality.
+                </p>
+            </CardContent>
+          </Card>
         </div>
 
       </main>
@@ -230,3 +263,5 @@ export default function AstroLearningPage() {
     </div>
   );
 }
+
+    
