@@ -14,3 +14,17 @@ export interface PalmReadingReport {
   detailedAnalysis?: string | null;
   error?: string | null;
 }
+
+export interface YearlyForecast {
+  year: number;
+  forecast: string;
+}
+
+export interface LifetimeHoroscopeReport {
+  forecasts: YearlyForecast[];
+}
+
+// For translation action
+export interface LifetimeHoroscopeReportTexts {
+  forecasts?: { year: number; forecast: string | null | undefined }[] | null;
+}

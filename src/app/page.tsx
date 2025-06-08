@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Sparkles, Hand, ArrowRight } from 'lucide-react';
+import { Sparkles, Hand, ArrowRight, Route } from 'lucide-react'; // Added Route
 
 export default function HomePage() {
   return (
@@ -30,7 +30,7 @@ export default function HomePage() {
           <h3 className="text-3xl md:text-4xl font-headline text-primary mb-10 text-center">
             Our Services
           </h3>
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto"> {/* Adjusted grid for potentially 3 items */}
             <Link href="/astrology" className="group">
               <Card className="h-full hover:shadow-xl hover:border-accent/50 transition-all duration-300 ease-in-out transform hover:scale-105 bg-card/70 backdrop-blur-sm">
                 <CardHeader>
@@ -68,6 +68,26 @@ export default function HomePage() {
                 </CardContent>
               </Card>
             </Link>
+
+            <Link href="/lifetime-horoscope" className="group">
+              <Card className="h-full hover:shadow-xl hover:border-accent/50 transition-all duration-300 ease-in-out transform hover:scale-105 bg-card/70 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-2xl font-headline text-accent group-hover:text-primary transition-colors">
+                    <Route className="mr-3 h-7 w-7" />
+                    Lifetime Horoscope
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base text-foreground/70 mb-4">
+                    Chart a course through your entire life. Get concise year-by-year astrological overviews based on your birth details.
+                  </CardDescription>
+                   <div className="flex items-center text-sm font-medium text-accent group-hover:text-primary transition-colors">
+                    Map Your Journey <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
           </div>
         </section>
       </main>
