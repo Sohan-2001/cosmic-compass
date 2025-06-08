@@ -19,6 +19,7 @@ interface FaceUploadFormProps {
 function applySharpen(imageData: ImageData, width: number, height: number): ImageData {
   const { data } = imageData;
   const outputData = new Uint8ClampedArray(data.length);
+  // Standard sharpening kernel
   const kernel = [
     [0, -0.5, 0],
     [-0.5, 3, -0.5],
@@ -60,12 +61,12 @@ export function FaceUploadForm({ onSubmit, isLoading }: FaceUploadFormProps) {
   const form = useForm<FaceUploadFormValues>({
     resolver: zodResolver(FaceUploadSchema),
     defaultValues: {
-      faceImage: undefined, // RHF expects File or undefined
-    }
+      faceImage: undefined, 
+    },
+    mode: 'onChange', // Validate on change to update formState.isValid quickly
   });
 
   useEffect(() => {
-    // Clean up the object URL when the component unmounts or preview changes
     let currentPreview = preview;
     return () => {
       if (currentPreview && currentPreview.startsWith('blob:')) {
@@ -76,93 +77,91 @@ export function FaceUploadForm({ onSubmit, isLoading }: FaceUploadFormProps) {
 
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>, fieldChange: (value: File | undefined) => void) => {
     const inputFile = event.target.files?.[0];
-    if (inputFile) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const originalImageSrc = reader.result as string;
-        const img = new window.Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-
-          if (!ctx) {
-            toast({ title: "Image Processing Error", description: "Could not get canvas context. Please try another image.", variant: "destructive" });
-            fieldChange(undefined);
-            if (preview) URL.revokeObjectURL(preview);
-            setPreview(null);
-            return;
-          }
-
-          const MAX_WIDTH = 1024;
-          const MAX_HEIGHT = 1024;
-          let { width, height } = img;
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height = Math.round((height * MAX_WIDTH) / width);
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width = Math.round((width * MAX_HEIGHT) / height);
-              height = MAX_HEIGHT;
-            }
-          }
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
-
-          try {
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const sharpenedData = applySharpen(imageData, width, height);
-            ctx.putImageData(sharpenedData, 0, 0);
-          } catch (e) {
-            console.error("Error during image sharpening for face:", e);
-          }
-          
-          canvas.toBlob((blob) => {
-            if (blob) {
-              const processedFile = new File([blob], inputFile.name, { type: 'image/jpeg' });
-               // Validate against schema before setting
-              const validationResult = FaceUploadSchema.shape.faceImage.safeParse(processedFile);
-              if (validationResult.success) {
-                if (preview) URL.revokeObjectURL(preview);
-                setPreview(URL.createObjectURL(processedFile));
-                fieldChange(processedFile);
-              } else {
-                toast({ title: "Image Validation Failed", description: validationResult.error.errors[0]?.message || "Please select a valid image (JPG, PNG, WEBP, <5MB).", variant: "destructive" });
-                fieldChange(undefined);
-                if (preview) URL.revokeObjectURL(preview);
-                setPreview(null);
-              }
-            } else {
-              toast({ title: "Image Processing Error", description: "Could not process image to blob. Try another image.", variant: "destructive" });
-              fieldChange(undefined);
-              if (preview) URL.revokeObjectURL(preview);
-              setPreview(null);
-            }
-          }, 'image/jpeg', 0.85); // Convert to JPEG, 85% quality
-        };
-        img.onerror = () => {
-          toast({ title: "Image Load Error", description: "Could not load the selected image file.", variant: "destructive" });
-          fieldChange(undefined);
-          if (preview) URL.revokeObjectURL(preview);
-          setPreview(null);
-        };
-        img.src = originalImageSrc;
-      };
-      reader.onerror = () => {
-          toast({ title: "File Read Error", description: "Could not read the selected file.", variant: "destructive" });
-          fieldChange(undefined);
-          if (preview) URL.revokeObjectURL(preview);
-          setPreview(null);
-      }
-      reader.readAsDataURL(inputFile);
-    } else {
+    
+    // Reset RHF field and preview if no file or file is cleared
+    if (!inputFile) {
       fieldChange(undefined);
       if (preview) URL.revokeObjectURL(preview);
       setPreview(null);
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const originalImageSrc = reader.result as string;
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          toast({ title: "Image Processing Error", description: "Could not get canvas context. Please try another image or browser.", variant: "destructive" });
+          fieldChange(undefined);
+          if (preview) URL.revokeObjectURL(preview);
+          setPreview(null);
+          return;
+        }
+
+        const MAX_WIDTH = 1024;
+        const MAX_HEIGHT = 1024;
+        let { width, height } = img;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        
+        try {
+          ctx.drawImage(img, 0, 0, width, height);
+          const imageData = ctx.getImageData(0, 0, width, height);
+          const sharpenedData = applySharpen(imageData, width, height);
+          ctx.putImageData(sharpenedData, 0, 0);
+        } catch (e) {
+          console.error("Error during image drawing or sharpening for face:", e);
+          toast({ title: "Image Processing Error", description: "Could not apply effects to image. Using resized image.", variant: "default" });
+          // If sharpening fails, we still try to use the resized image
+          ctx.drawImage(img, 0, 0, width, height); // Redraw original if sharpening failed
+        }
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const processedFile = new File([blob], inputFile.name, { type: 'image/jpeg' });
+            // Let RHF validate the processedFile using the schema
+            fieldChange(processedFile); // This updates RHF and triggers validation
+            if (preview) URL.revokeObjectURL(preview); // Clean up old preview
+            setPreview(URL.createObjectURL(processedFile)); // Set new preview
+          } else {
+            toast({ title: "Image Processing Error", description: "Could not convert image to required format. Try another image.", variant: "destructive" });
+            fieldChange(undefined);
+            if (preview) URL.revokeObjectURL(preview);
+            setPreview(null);
+          }
+        }, 'image/jpeg', 0.85); 
+      };
+      img.onerror = () => {
+        toast({ title: "Image Load Error", description: "Could not load the selected image file. It might be corrupted or an unsupported format.", variant: "destructive" });
+        fieldChange(undefined);
+        if (preview) URL.revokeObjectURL(preview);
+        setPreview(null);
+      };
+      img.src = originalImageSrc;
+    };
+    reader.onerror = () => {
+        toast({ title: "File Read Error", description: "Could not read the selected file.", variant: "destructive" });
+        fieldChange(undefined);
+        if (preview) URL.revokeObjectURL(preview);
+        setPreview(null);
+    }
+    reader.readAsDataURL(inputFile);
   };
 
   return (
@@ -178,6 +177,7 @@ export function FaceUploadForm({ onSubmit, isLoading }: FaceUploadFormProps) {
                  <Input 
                   type="file" 
                   accept="image/jpeg,image/png,image/webp" 
+                  // Use a ref to allow clearing the input if needed, RHF handles its state
                   onChange={(e) => handleFileChange(e, field.onChange)} 
                   className="w-full h-12 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                 />
@@ -195,7 +195,7 @@ export function FaceUploadForm({ onSubmit, isLoading }: FaceUploadFormProps) {
 
         <Button 
           type="submit" 
-          disabled={isLoading || !preview || !form.formState.isValid} 
+          disabled={isLoading || !form.formState.isValid || !preview} 
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-headline text-base md:text-lg py-3 md:py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-150 ease-in-out"
         >
           {isLoading ? (
@@ -214,3 +214,4 @@ export function FaceUploadForm({ onSubmit, isLoading }: FaceUploadFormProps) {
     </Form>
   );
 }
+
