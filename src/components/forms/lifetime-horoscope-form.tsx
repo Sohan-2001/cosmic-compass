@@ -71,7 +71,7 @@ export function LifetimeHoroscopeForm({ onSubmit, isLoading }: LifetimeHoroscope
                 if (field.value !== undefined) field.onChange(undefined);
                 return;
               }
-              const ddMMyyyyRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\\d{4}$/;
+              const ddMMyyyyRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/; // Corrected regex
               if (ddMMyyyyRegex.test(dateInputValue)) {
                 const parsedDate = parse(dateInputValue, 'dd-MM-yyyy', new Date());
                 if (isValidDate(parsedDate) && format(parsedDate, 'dd-MM-yyyy') === dateInputValue) {
