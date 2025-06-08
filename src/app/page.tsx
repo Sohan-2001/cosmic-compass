@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Sparkles, Hand, ArrowRight, Route, Bot, Smile } from 'lucide-react'; // Added Bot, Smile
+import { Sparkles, Hand, ArrowRight, Route, Bot, Smile, BookOpen } from 'lucide-react'; // Added BookOpen
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +30,7 @@ export default function HomePage() {
             Welcome to Cosmic Compass
           </h2>
           <p className="text-lg md:text-xl text-foreground/80 mb-6 max-w-3xl mx-auto">
-            Navigate your life's journey with insights from the stars and the wisdom hidden in your hands and face. Cosmic Compass offers personalized astrological forecasts, detailed palm readings, and insightful face readings to illuminate your path.
+            Navigate your life's journey with insights from the stars and the wisdom hidden in your hands and face. Cosmic Compass offers personalized astrological forecasts, detailed palm readings, insightful face readings, and educational content to illuminate your path.
           </p>
           <div className="space-y-1">
             <p className="text-md text-muted-foreground">
@@ -46,7 +46,7 @@ export default function HomePage() {
           <h3 className="text-3xl md:text-4xl font-headline text-primary mb-10 text-center">
             Our Services
           </h3>
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8 max-w-7xl mx-auto"> {/* Adjusted xl:grid-cols-3 for 5 items */}
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8 max-w-7xl mx-auto">
             <Link href="/astrology" className="group">
               <Card className="h-full hover:shadow-xl hover:border-accent/50 transition-all duration-300 ease-in-out transform hover:scale-105 bg-card/70 backdrop-blur-sm">
                 <CardHeader>
@@ -118,6 +118,25 @@ export default function HomePage() {
                   </CardDescription>
                    <div className="flex items-center text-sm font-medium text-accent group-hover:text-primary transition-colors">
                     Map Your Journey <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/astro-learning" className="group">
+              <Card className="h-full hover:shadow-xl hover:border-accent/50 transition-all duration-300 ease-in-out transform hover:scale-105 bg-card/70 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-2xl font-headline text-accent group-hover:text-primary transition-colors">
+                    <BookOpen className="mr-3 h-7 w-7" />
+                    Astro-Learning Hub
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base text-foreground/70 mb-4">
+                    Learn the basics of astrology, understand planetary influences, zodiac signs, and house systems to deepen your cosmic knowledge.
+                  </CardDescription>
+                  <div className="flex items-center text-sm font-medium text-accent group-hover:text-primary transition-colors">
+                    Start Learning <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
                   </div>
                 </CardContent>
               </Card>
