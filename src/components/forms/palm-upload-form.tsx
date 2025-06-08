@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { PalmUploadSchema, type PalmUploadFormValues } from '@/lib/schemas'; 
-import { useState, type ChangeEvent } from 'react';
-import NextImage from 'next/image'; // Renamed to avoid conflict
+import { useState, type ChangeEvent, useEffect } from 'react';
+import NextImage from 'next/image'; 
 import { Hand } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,7 +21,7 @@ function applySharpen(imageData: ImageData, width: number, height: number): Imag
   const { data } = imageData;
   const outputData = new Uint8ClampedArray(data.length);
 
-  // Sharpening kernel (adjust values for more or less sharpening)
+  // Sharpening kernel
   const kernel = [
     [0, -1, 0],
     [-1, 5, -1],
@@ -65,24 +65,46 @@ export function PalmUploadForm({ onSubmit, isLoading }: PalmUploadFormProps) {
   const { toast } = useToast();
   const form = useForm<PalmUploadFormValues>({
     resolver: zodResolver(PalmUploadSchema),
+    defaultValues: {
+        palmImage: "",
+    }
   });
+
+  useEffect(() => {
+    // Clean up object URLs when component unmounts or preview changes
+    let currentPreview = preview;
+    return () => {
+      if (currentPreview && currentPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(currentPreview);
+      }
+    };
+  }, [preview]);
 
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void) => {
     const file = event.target.files?.[0];
+    
+    if (preview && preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview); // Revoke old object URL if exists
+    }
+    setPreview(null); // Reset preview
+    fieldChange(''); // Reset form field
+
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         const originalImageSrc = reader.result as string;
 
-        const img = new window.Image(); // Use window.Image to avoid conflict with NextImage
+        const img = new window.Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
 
           if (!ctx) {
-            setPreview(originalImageSrc);
-            fieldChange(originalImageSrc);
             toast({ title: "Image Processing Error", description: "Could not get canvas context. Using original image.", variant: "destructive" });
+            // Fallback to original if canvas fails, though less ideal
+            // Consider if direct originalImageSrc is acceptable by AI or schema
+            setPreview(originalImageSrc); 
+            fieldChange(originalImageSrc); 
             return;
           }
 
@@ -112,31 +134,23 @@ export function PalmUploadForm({ onSubmit, isLoading }: PalmUploadFormProps) {
             ctx.putImageData(sharpenedData, 0, 0);
           } catch (e) {
             console.error("Error during image sharpening:", e);
-            toast({ title: "Sharpening Failed", description: "Could not sharpen image, proceeding with unsharpened version.", variant: "default" });
-            // Continue with the (resized) image if sharpening fails
+            toast({ title: "Sharpening Failed", description: "Could not sharpen image, using resized version.", variant: "default" });
           }
           
-          const processedDataUrl = canvas.toDataURL('image/jpeg', 0.85); // Compress to JPEG with 85% quality
+          const processedDataUrl = canvas.toDataURL('image/jpeg', 0.85); 
 
           setPreview(processedDataUrl);
           fieldChange(processedDataUrl);
         };
         img.onerror = () => {
-          setPreview(null);
-          fieldChange('');
           toast({ title: "Image Load Error", description: "Could not load the selected image file.", variant: "destructive" });
         };
         img.src = originalImageSrc;
       };
       reader.onerror = () => {
-          setPreview(null);
-          fieldChange('');
           toast({ title: "File Read Error", description: "Could not read the selected file.", variant: "destructive" });
       }
       reader.readAsDataURL(file);
-    } else {
-      setPreview(null);
-      fieldChange('');
     }
   };
 
@@ -170,7 +184,7 @@ export function PalmUploadForm({ onSubmit, isLoading }: PalmUploadFormProps) {
 
         <Button 
           type="submit" 
-          disabled={isLoading || !preview} 
+          disabled={isLoading || !preview || !form.formState.isValid} 
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-headline text-base md:text-lg py-3 md:py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-150 ease-in-out"
         >
           {isLoading ? (
