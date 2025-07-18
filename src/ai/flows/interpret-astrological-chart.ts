@@ -39,11 +39,11 @@ const prompt = ai.definePrompt({
   name: 'interpretAstrologicalChartPrompt',
   input: {schema: InterpretAstrologicalChartInputSchema},
   output: {schema: InterpretAstrologicalChartOutputSchema},
-  prompt: `You are an expert astrologer specializing in interpreting astrological charts.
+  prompt: `You are an expert astrologer specializing in interpreting astrological charts using the Vedic Astrology (Jyotish) system, which is based on the Sidereal Zodiac.
 
-  Based on the provided birth details, provide a comprehensive interpretation of the user's astrological chart, including their personality traits, life tendencies, and key insights. The user has confirmed their Zodiac sign, which is provided with the birth date - use that as the primary sun sign for the reading.
+  Based on the provided birth details, provide a comprehensive interpretation of the user's astrological chart. You must take the birth location into account to apply the correct time zone and calculations for an accurate Vedic reading. The user has also confirmed their Zodiac sign, which is provided with the birth date - use that as the primary sun sign for the reading.
 
-  In addition, provide the following forecasts:
+  In addition, provide the following forecasts based on Vedic principles:
   - A brief forecast for the next month.
   - A brief forecast for the next three years.
   - A prediction of any significant life events that may occur, including the probable timing.

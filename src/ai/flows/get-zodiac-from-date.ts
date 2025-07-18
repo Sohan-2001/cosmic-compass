@@ -31,7 +31,7 @@ const prompt = ai.definePrompt({
   name: 'getZodiacFromDatePrompt',
   input: {schema: GetZodiacFromDateInputSchema},
   output: {schema: GetZodiacFromDateOutputSchema},
-  prompt: `You are an expert astrologer. Based on the following birth date, determine the user's Zodiac sun sign.
+  prompt: `You are an expert astrologer. Based on the following birth date, determine the user's Zodiac sun sign using the Western (Tropical) astrology system.
 
   Birth Date: {{{birthDate}}}
 
