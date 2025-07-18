@@ -1,8 +1,8 @@
+
 'use client';
 
-import { useState } from 'react';
-import { getZodiacDetails, type GetZodiacDetailsOutput } from '@/ai/flows/get-zodiac-details';
-import { translateText } from '@/ai/flows/translate-text';
+import { useState, useEffect } from 'react';
+import type { GetZodiacDetailsOutput } from '@/ai/flows/get-zodiac-details';
 import { horoscopes } from '@/data/horoscopes';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -12,12 +12,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
 const elementIcons = {
     Fire: <Sun className="h-4 w-4" />,
     Earth: <Mountain className="h-4 w-4" />,
     Air: <Wind className="h-4 w-4" />,
     Water: <Droplets className="h-4 w-4" />,
+};
+
+type ZodiacDetailsWithTranslations = GetZodiacDetailsOutput & {
+    id: string;
+    translations: Record<string, GetZodiacDetailsOutput>;
 };
 
 const languages = [
@@ -44,86 +51,72 @@ const languages = [
 ];
 
 export default function ZodiacSignsPage() {
-  const [isLoading, setIsLoading] = useState<string | null>(null);
-  const [selectedSign, setSelectedSign] = useState<GetZodiacDetailsOutput | null>(null);
-  const [isTranslating, setIsTranslating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [allZodiacData, setAllZodiacData] = useState<Record<string, ZodiacDetailsWithTranslations>>({});
+  const [selectedSign, setSelectedSign] = useState<ZodiacDetailsWithTranslations | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState('English');
-  const [translatedDetails, setTranslatedDetails] = useState<GetZodiacDetailsOutput | null>(null);
   const { toast } = useToast();
 
-  const handleSignSelect = async (sign: string) => {
-    if (isLoading === sign) return;
-    
-    setIsLoading(sign);
-    setSelectedSign(null);
-    setTranslatedDetails(null);
-    setSelectedLanguage('English');
-    try {
-      const details = await getZodiacDetails({ sign });
-      setSelectedSign(details);
-    } catch (error) {
-      console.error('Error fetching zodiac details:', error);
-      toast({
-        title: 'Error',
-        description: `Failed to fetch details for ${sign}. Please try again.`,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(null);
+  useEffect(() => {
+    const fetchZodiacData = async () => {
+      setIsLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'zodiac_signs'));
+        if (querySnapshot.empty) {
+            toast({
+                title: 'No Data Found',
+                description: 'The zodiac sign data has not been loaded into the database yet.',
+                variant: 'destructive',
+            });
+            return;
+        }
+        const data: Record<string, ZodiacDetailsWithTranslations> = {};
+        querySnapshot.forEach((doc) => {
+          data[doc.id] = { id: doc.id, ...(doc.data() as Omit<ZodiacDetailsWithTranslations, 'id'>) };
+        });
+        setAllZodiacData(data);
+      } catch (error) {
+        console.error('Error fetching zodiac details from Firestore:', error);
+        toast({
+          title: 'Error',
+          description: `Failed to fetch zodiac data from the database.`,
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchZodiacData();
+  }, [toast]);
+
+  const handleSignSelect = (sign: string) => {
+    const signData = allZodiacData[sign];
+    if (signData) {
+        setSelectedSign(signData);
+        setSelectedLanguage('English');
+    } else if (!isLoading) {
+        toast({
+            title: 'Data not available',
+            description: `Details for ${sign} could not be found.`,
+            variant: 'destructive'
+        });
     }
   };
 
   const handleLanguageChange = (language: string) => {
     setSelectedLanguage(language);
-    if (language === 'English') {
-      setTranslatedDetails(null);
-    }
-  };
-
-  const translateObject = async (obj: Record<string, any>, language: string): Promise<any> => {
-      const translatedObj: Record<string, any> = {};
-      for (const key in obj) {
-          const value = obj[key];
-          if (typeof value === 'string') {
-              const { translatedText } = await translateText({ text: value, targetLanguage: language });
-              translatedObj[key] = translatedText;
-          } else if (Array.isArray(value)) {
-              translatedObj[key] = await Promise.all(
-                  value.map(async (item) => {
-                      if (typeof item === 'string') {
-                          const { translatedText } = await translateText({ text: item, targetLanguage: language });
-                          return translatedText;
-                      }
-                      return item;
-                  })
-              );
-          } else {
-              translatedObj[key] = value;
-          }
-      }
-      return translatedObj;
-  };
-
-  const handleTranslate = async () => {
-    if (!selectedSign || !selectedLanguage || selectedLanguage === 'English') return;
-
-    setIsTranslating(true);
-    try {
-      const translatedData = await translateObject(selectedSign, selectedLanguage);
-      setTranslatedDetails(translatedData as GetZodiacDetailsOutput);
-    } catch (error) {
-        console.error("Translation error:", error);
-        toast({
-            title: "Error",
-            description: "Failed to translate the profile.",
-            variant: "destructive"
-        });
-    } finally {
-        setIsTranslating(false);
-    }
   };
   
-  const displayData = translatedDetails || selectedSign;
+  const getDisplayData = (): GetZodiacDetailsOutput | null => {
+      if (!selectedSign) return null;
+      if (selectedLanguage === 'English' || !selectedSign.translations) {
+          return selectedSign;
+      }
+      return selectedSign.translations[selectedLanguage] || selectedSign;
+  };
+  
+  const displayData = getDisplayData();
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -138,7 +131,7 @@ export default function ZodiacSignsPage() {
             key={sign}
             variant={selectedSign?.sign === sign ? 'secondary' : 'outline'}
             onClick={() => handleSignSelect(sign)}
-            disabled={!!isLoading}
+            disabled={isLoading}
             className="flex flex-col h-24 gap-2"
           >
             <ZodiacIcon sign={sign} className="w-8 h-8 text-accent" />
@@ -150,20 +143,20 @@ export default function ZodiacSignsPage() {
       {isLoading && (
         <div className="flex justify-center items-center py-16">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="ml-4 text-lg">Loading {isLoading}'s profile...</p>
+          <p className="ml-4 text-lg">Loading Zodiac Profiles...</p>
         </div>
       )}
 
-      {displayData && (
+      {displayData && selectedSign && (
         <Card className="animate-in fade-in-50 bg-card/50 backdrop-blur-sm">
           <CardHeader className="text-center">
             <div className="flex justify-center items-center gap-4">
-              <ZodiacIcon sign={selectedSign!.sign} className="w-16 h-16 text-accent" />
+              <ZodiacIcon sign={selectedSign.sign} className="w-16 h-16 text-accent" />
             </div>
             <CardTitle className="font-headline text-5xl mt-4">{displayData.sign}</CardTitle>
             <div className="flex justify-center items-center gap-4 text-muted-foreground mt-2 flex-wrap">
                 <Badge variant="outline" className="flex items-center gap-1.5">
-                    {elementIcons[selectedSign!.element as keyof typeof elementIcons]}
+                    {elementIcons[selectedSign.element as keyof typeof elementIcons]}
                     {displayData.element}
                 </Badge>
                 <Badge variant="outline">{displayData.modality}</Badge>
@@ -209,21 +202,19 @@ export default function ZodiacSignsPage() {
                     </SelectTrigger>
                     <SelectContent>
                         {languages.map(lang => (
-                            <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>
+                            <SelectItem 
+                                key={lang.value} 
+                                value={lang.value}
+                                disabled={lang.value !== 'English' && !selectedSign.translations?.[lang.value]}
+                            >
+                               {lang.label}
+                            </SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
-                <Button 
-                    onClick={handleTranslate}
-                    disabled={isTranslating || !selectedLanguage || selectedLanguage === 'English'}
-                >
-                    {isTranslating ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <Languages className="mr-2 h-4 w-4" />
-                    )}
-                    Translate
-                </Button>
+                 <p className="text-sm text-muted-foreground">
+                    {Object.keys(selectedSign.translations || {}).length + 1} languages available.
+                 </p>
             </div>
           </CardFooter>
         </Card>
