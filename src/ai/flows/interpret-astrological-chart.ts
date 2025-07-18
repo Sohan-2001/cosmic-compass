@@ -24,6 +24,9 @@ const InterpretAstrologicalChartOutputSchema = z.object({
   personalityTraits: z.string().describe('An interpretation of the user\'s personality traits based on their astrological chart.'),
   lifeTendencies: z.string().describe('An overview of the user\'s life tendencies and potential challenges.'),
   keyInsights: z.string().describe('Key insights into the user\'s strengths and areas for growth.'),
+  nextMonthForecast: z.string().describe('A brief astrological forecast for the next month.'),
+  nextThreeYearsForecast: z.string().describe('A brief astrological forecast for the next three years.'),
+  significantEvents: z.string().describe('A forecast of any significant life events that might happen, including the probable time of occurrence.'),
 });
 
 export type InterpretAstrologicalChartOutput = z.infer<typeof InterpretAstrologicalChartOutputSchema>;
@@ -39,6 +42,11 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert astrologer specializing in interpreting astrological charts.
 
   Based on the provided birth details, provide a comprehensive interpretation of the user's astrological chart, including their personality traits, life tendencies, and key insights.
+
+  In addition, provide the following forecasts:
+  - A brief forecast for the next month.
+  - A brief forecast for the next three years.
+  - A prediction of any significant life events that may occur, including the probable timing.
 
   Birth Date: {{{birthDate}}}
   Birth Time: {{{birthTime}}}

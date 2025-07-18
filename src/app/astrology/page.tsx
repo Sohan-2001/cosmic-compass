@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Star } from 'lucide-react';
+import { Loader2, Sparkles, Star, Calendar, Zap, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -151,7 +151,7 @@ export default function AstrologyPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Star className="text-accent" /> Life Tendencies</CardTitle>
+              <CardTitle className="flex items-center gap-2"><TrendingUp className="text-accent" /> Life Tendencies</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground whitespace-pre-wrap">{result.lifeTendencies}</p>
@@ -159,10 +159,34 @@ export default function AstrologyPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Star className="text-accent" /> Key Insights</CardTitle>
+              <CardTitle className="flex items-center gap-2"><Sparkles className="text-accent" /> Key Insights</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground whitespace-pre-wrap">{result.keyInsights}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Calendar className="text-accent" /> Next Month Forecast</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground whitespace-pre-wrap">{result.nextMonthForecast}</p>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><TrendingUp className="text-accent" /> Next 3 Years Forecast</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground whitespace-pre-wrap">{result.nextThreeYearsForecast}</p>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Zap className="text-accent" /> Significant Events</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground whitespace-pre-wrap">{result.significantEvents}</p>
             </CardContent>
           </Card>
         </div>

@@ -97,21 +97,24 @@ export default function ResultsPage() {
         switch (result.type) {
             case 'astrology':
                 return (
-                    <>
+                    <div className="space-y-2">
                         <p><strong>Personality Traits:</strong> {result.data.personalityTraits}</p>
                         <p><strong>Life Tendencies:</strong> {result.data.lifeTendencies}</p>
                         <p><strong>Key Insights:</strong> {result.data.keyInsights}</p>
-                    </>
+                        {result.data.nextMonthForecast && <p><strong>Next Month Forecast:</strong> {result.data.nextMonthForecast}</p>}
+                        {result.data.nextThreeYearsForecast && <p><strong>Next 3 Years Forecast:</strong> {result.data.nextThreeYearsForecast}</p>}
+                        {result.data.significantEvents && <p><strong>Significant Events:</strong> {result.data.significantEvents}</p>}
+                    </div>
                 );
             case 'palmistry':
                 return <p>{result.data.analysis}</p>;
             case 'face-reading':
                 return (
-                    <>
+                    <div className="space-y-2">
                         <p><strong>Summary:</strong> {result.data.summary}</p>
                         <p><strong>Personality Insights:</strong> {result.data.personalityInsights}</p>
                         <p><strong>Fortune Prediction:</strong> {result.data.fortunePrediction}</p>
-                    </>
+                    </div>
                 );
             default:
                 return <p>Unknown result type.</p>;
@@ -155,7 +158,7 @@ export default function ResultsPage() {
                                 <AccordionTrigger className="p-4 text-lg font-medium hover:no-underline flex-1">
                                 <div className="flex items-center gap-4">
                                     {getIcon(result.type)}
-                                    <span className="capitalize">{result.type} Reading</span>
+                                    <span className="capitalize">{result.type.replace('-', ' ')} Reading</span>
                                     <span className="text-sm text-muted-foreground ml-auto">
                                         {format(new Date(result.createdAt.seconds * 1000), 'PPP p')}
                                     </span>
@@ -181,12 +184,12 @@ export default function ResultsPage() {
                     ))}
                 </Accordion>
             ) : (
-                <Card>
+                <Card className="bg-card/50 backdrop-blur-sm">
                     <CardHeader>
                         <CardTitle>No Results Yet</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p>You haven't performed any readings yet. Go explore the app to get started!</p>
+                        <p className="text-muted-foreground">You haven't performed any readings yet. Go explore the app to get started!</p>
                     </CardContent>
                 </Card>
             )}
