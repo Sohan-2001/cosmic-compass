@@ -2,7 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { GetZodiacDetailsOutput } from '@/ai/flows/get-zodiac-details';
+import { getZodiacDetails, type GetZodiacDetailsOutput } from '@/ai/flows/get-zodiac-details';
+import { translateText } from '@/ai/flows/translate-text';
 import { horoscopes } from '@/data/horoscopes';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -13,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { db } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
 const elementIcons = {
     Fire: <Sun className="h-4 w-4" />,
@@ -24,7 +25,7 @@ const elementIcons = {
 
 type ZodiacDetailsWithTranslations = GetZodiacDetailsOutput & {
     id: string;
-    translations: Record<string, GetZodiacDetailsOutput>;
+    translations?: Record<string, GetZodiacDetailsOutput>;
 };
 
 const languages = [
@@ -51,63 +52,123 @@ const languages = [
 ];
 
 export default function ZodiacSignsPage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [allZodiacData, setAllZodiacData] = useState<Record<string, ZodiacDetailsWithTranslations>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [zodiacCache, setZodiacCache] = useState<Record<string, ZodiacDetailsWithTranslations>>({});
   const [selectedSign, setSelectedSign] = useState<ZodiacDetailsWithTranslations | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState('English');
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchZodiacData = async () => {
-      setIsLoading(true);
-      try {
-        const querySnapshot = await getDocs(collection(db, 'zodiac_signs'));
-        if (querySnapshot.empty) {
-            toast({
-                title: 'No Data Found',
-                description: 'The zodiac sign data has not been loaded into the database yet.',
-                variant: 'destructive',
-            });
-            return;
-        }
-        const data: Record<string, ZodiacDetailsWithTranslations> = {};
-        querySnapshot.forEach((doc) => {
-          data[doc.id] = { id: doc.id, ...(doc.data() as Omit<ZodiacDetailsWithTranslations, 'id'>) };
-        });
-        setAllZodiacData(data);
-      } catch (error) {
-        console.error('Error fetching zodiac details from Firestore:', error);
-        toast({
-          title: 'Error',
-          description: `Failed to fetch zodiac data from the database.`,
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const handleSignSelect = async (sign: string) => {
+    setSelectedSign(null);
+    setIsLoading(true);
+    setSelectedLanguage('English');
 
-    fetchZodiacData();
-  }, [toast]);
+    // 1. Check client-side cache first
+    if (zodiacCache[sign]) {
+      setSelectedSign(zodiacCache[sign]);
+      setIsLoading(false);
+      return;
+    }
 
-  const handleSignSelect = (sign: string) => {
-    const signData = allZodiacData[sign];
-    if (signData) {
+    try {
+      // 2. Check Firestore
+      const docRef = doc(db, 'zodiac_signs', sign);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const signData = { id: docSnap.id, ...docSnap.data() } as ZodiacDetailsWithTranslations;
         setSelectedSign(signData);
-        setSelectedLanguage('English');
-    } else if (!isLoading) {
-        toast({
-            title: 'Data not available',
-            description: `Details for ${sign} could not be found.`,
-            variant: 'destructive'
-        });
+        setZodiacCache(prev => ({ ...prev, [sign]: signData }));
+      } else {
+        // 3. Data not found, call AI
+        toast({ title: 'Fetching new data...', description: 'Please wait while we generate the profile for ' + sign });
+        const details = await getZodiacDetails({ sign });
+        const newSignData: ZodiacDetailsWithTranslations = { ...details, id: sign, translations: {} };
+        
+        // 4. Save to Firestore
+        await setDoc(docRef, newSignData);
+        
+        setSelectedSign(newSignData);
+        setZodiacCache(prev => ({ ...prev, [sign]: newSignData }));
+        toast({ title: 'Success!', description: 'Zodiac profile generated and saved.'});
+      }
+    } catch (error) {
+      console.error('Error handling sign selection:', error);
+      toast({
+        title: 'Error',
+        description: `Failed to get or generate details for ${sign}.`,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleLanguageChange = (language: string) => {
-    setSelectedLanguage(language);
+  const translateObject = async (obj: any, language: string): Promise<any> => {
+      const translatedObj: any = {};
+      for (const key in obj) {
+          if (typeof obj[key] === 'string') {
+              const { translatedText } = await translateText({ text: obj[key], targetLanguage: language });
+              translatedObj[key] = translatedText;
+          } else if (Array.isArray(obj[key])) {
+               translatedObj[key] = await Promise.all(
+                   obj[key].map(async (item: any) => {
+                       if (typeof item === 'string') {
+                           const { translatedText } = await translateText({ text: item, targetLanguage: language });
+                           return translatedText;
+                       }
+                       return item;
+                   })
+               );
+          } else {
+              translatedObj[key] = obj[key];
+          }
+      }
+      return translatedObj;
   };
-  
+
+  const handleLanguageChange = async (language: string) => {
+    setSelectedLanguage(language);
+    if (!selectedSign || language === 'English') {
+        return;
+    }
+    
+    // Check if translation is already cached
+    if (selectedSign.translations?.[language]) {
+        return; // Already have it, no need to fetch
+    }
+
+    setIsTranslating(true);
+    try {
+        const { translations, id, ...originalData } = selectedSign;
+        const translatedData = await translateObject(originalData, language);
+
+        // Update firestore with the new translation
+        const docRef = doc(db, 'zodiac_signs', selectedSign.id);
+        await updateDoc(docRef, {
+            [`translations.${language}`]: translatedData
+        });
+
+        // Update local state
+        const updatedSign = {
+            ...selectedSign,
+            translations: {
+                ...selectedSign.translations,
+                [language]: translatedData,
+            }
+        };
+        setSelectedSign(updatedSign);
+        setZodiacCache(prev => ({ ...prev, [selectedSign.id]: updatedSign }));
+
+    } catch (error) {
+         console.error('Translation error:', error);
+         toast({ title: 'Error', description: 'Failed to translate.', variant: 'destructive' });
+    } finally {
+        setIsTranslating(false);
+    }
+  };
+
   const getDisplayData = (): GetZodiacDetailsOutput | null => {
       if (!selectedSign) return null;
       if (selectedLanguage === 'English' || !selectedSign.translations) {
@@ -143,7 +204,7 @@ export default function ZodiacSignsPage() {
       {isLoading && (
         <div className="flex justify-center items-center py-16">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="ml-4 text-lg">Loading Zodiac Profiles...</p>
+          <p className="ml-4 text-lg">Loading Zodiac Profile...</p>
         </div>
       )}
 
@@ -205,16 +266,22 @@ export default function ZodiacSignsPage() {
                             <SelectItem 
                                 key={lang.value} 
                                 value={lang.value}
-                                disabled={lang.value !== 'English' && !selectedSign.translations?.[lang.value]}
                             >
                                {lang.label}
                             </SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
-                 <p className="text-sm text-muted-foreground">
-                    {Object.keys(selectedSign.translations || {}).length + 1} languages available.
-                 </p>
+                 {isTranslating ? (
+                    <div className="flex items-center text-sm text-muted-foreground">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Translating...
+                    </div>
+                 ) : (
+                    <p className="text-sm text-muted-foreground">
+                        Available in {Object.keys(selectedSign.translations || {}).length + 1} languages.
+                    </p>
+                 )}
             </div>
           </CardFooter>
         </Card>
