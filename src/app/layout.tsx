@@ -7,6 +7,7 @@ import { SidebarNav } from '@/components/common/sidebar-nav';
 import { Toaster } from '@/components/ui/toaster';
 import { BackgroundStars } from '@/components/common/background-stars';
 import { AuthProvider } from '@/context/auth-context';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'Astro AI',
@@ -43,6 +44,11 @@ export default function RootLayout({
           </SidebarProvider>
           <Toaster />
         </AuthProvider>
+        <Script
+          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+          async
+          defer
+        />
       </body>
     </html>
   );

@@ -14,6 +14,7 @@ import { Loader2, Sparkles, Star, Calendar, Zap, TrendingUp } from 'lucide-react
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { PlacesAutocomplete } from '@/components/common/places-autocomplete';
 
 const formSchema = z.object({
   birthDate: z.string().min(1, 'Birth date is required'),
@@ -114,7 +115,10 @@ export default function AstrologyPage() {
                   <FormItem>
                     <FormLabel>Birth Location (City, Country)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., New York, USA" {...field} />
+                       <PlacesAutocomplete 
+                        onLocationSelect={(location) => form.setValue('birthLocation', location, { shouldValidate: true })}
+                        initialValue={field.value}
+                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
