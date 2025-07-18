@@ -6,10 +6,12 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { Bot, Hand, Home, Sparkles, User, Wand2 } from 'lucide-react';
+import { Bot, Hand, Home, Sparkles, User, Wand2, Star, LogIn, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '../ui/button';
+import { useAuth } from '@/context/auth-context';
+import { auth } from '@/lib/firebase';
 
 const links = [
   { href: '/', label: 'Home', icon: Home },
@@ -19,8 +21,17 @@ const links = [
   { href: '/chat', label: 'AI Astrologer Chat', icon: Bot },
 ];
 
+const authenticatedLinks = [
+    { href: '/results', label: 'Results', icon: Star },
+];
+
 export function SidebarNav() {
   const pathname = usePathname();
+  const { user, loading } = useAuth();
+
+  const handleSignOut = async () => {
+    await auth.signOut();
+  };
 
   return (
     <>
@@ -52,9 +63,38 @@ export function SidebarNav() {
             </Button>
           </SidebarMenuItem>
         ))}
+        {user && authenticatedLinks.map((link) => (
+            <SidebarMenuItem key={link.href}>
+                <Button
+                variant={pathname === link.href ? 'secondary' : 'ghost'}
+                className="w-full justify-start gap-2"
+                asChild
+                >
+                <Link href={link.href}>
+                    <link.icon className="h-4 w-4" />
+                    <span>{link.label}</span>
+                </Link>
+                </Button>
+            </SidebarMenuItem>
+        ))}
       </SidebarMenu>
       <SidebarFooter className="mt-auto">
-        <p className="text-xs text-muted-foreground text-center">
+        {!loading && (
+            user ? (
+                <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                </Button>
+            ) : (
+                <Button variant="ghost" className="w-full justify-start gap-2" asChild>
+                    <Link href="/login">
+                        <LogIn className="h-4 w-4" />
+                        <span>Sign In</span>
+                    </Link>
+                </Button>
+            )
+        )}
+        <p className="text-xs text-muted-foreground text-center mt-4">
             &copy; {new Date().getFullYear()} Astro AI
         </p>
       </SidebarFooter>

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { aiAstrologerChat } from '@/ai/flows/ai-astrologer-chat';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,7 +25,10 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+      const viewport = scrollAreaRef.current.querySelector('div');
+      if (viewport) {
+        viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+      }
     }
   }, [messages]);
   
@@ -40,7 +43,10 @@ export default function ChatPage() {
     setIsLoading(true);
 
     try {
-      const chatHistory = newMessages.slice(0, -1);
+      const chatHistory = newMessages.slice(0, -1).map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content
+      }));
       const { response } = await aiAstrologerChat({ message: input, chatHistory });
       const assistantMessage: Message = { role: 'assistant', content: response };
       setMessages([...newMessages, assistantMessage]);
@@ -59,7 +65,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[80vh] max-w-4xl mx-auto">
+    <div className="flex flex-col h-[calc(100vh-10rem)] max-w-4xl mx-auto">
         <div className="text-center mb-8">
             <h1 className="font-headline text-5xl font-bold">AI Astrologer Chat</h1>
             <p className="text-muted-foreground mt-2">Ask me anything about astrology, your chart, or the cosmos.</p>
@@ -81,7 +87,7 @@ export default function ChatPage() {
                       <AvatarFallback><Bot /></AvatarFallback>
                     </Avatar>
                   )}
-                  <div className={cn('max-w-md p-3 rounded-lg', message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary')}>
+                  <div className={cn('max-w-lg p-3 rounded-lg', message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary')}>
                     <p className="whitespace-pre-wrap">{message.content}</p>
                   </div>
                   {message.role === 'user' && (

@@ -7,12 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Hand, Sparkles } from 'lucide-react';
 import { ImageUploader } from '@/components/common/image-uploader';
+import { useAuth } from '@/context/auth-context';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function PalmistryPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AnalyzePalmImageOutput | null>(null);
   const [imageDataUri, setImageDataUri] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleAnalysis = async () => {
     if (!imageDataUri) {
@@ -29,6 +33,16 @@ export default function PalmistryPage() {
     try {
       const analysis = await analyzePalmImage({ palmImageDataUri: imageDataUri });
       setResult(analysis);
+      
+      if (user) {
+        await addDoc(collection(db, 'results'), {
+          userId: user.uid,
+          type: 'palmistry',
+          data: analysis,
+          createdAt: serverTimestamp(),
+        });
+      }
+
     } catch (error) {
       console.error('Error analyzing palm image:', error);
       toast({

@@ -11,6 +11,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Sparkles, Star } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const formSchema = z.object({
   birthDate: z.string().min(1, 'Birth date is required'),
@@ -22,6 +25,7 @@ export default function AstrologyPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<InterpretAstrologicalChartOutput | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -38,6 +42,16 @@ export default function AstrologyPage() {
     try {
       const chart = await interpretAstrologicalChart(values);
       setResult(chart);
+
+      if (user) {
+        await addDoc(collection(db, 'results'), {
+          userId: user.uid,
+          type: 'astrology',
+          data: chart,
+          createdAt: serverTimestamp(),
+        });
+      }
+
     } catch (error) {
       console.error('Error interpreting astrological chart:', error);
       toast({

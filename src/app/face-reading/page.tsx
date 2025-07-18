@@ -9,6 +9,9 @@ import { Loader2, User, Sparkles, Star } from 'lucide-react';
 import { ImageUploader } from '@/components/common/image-uploader';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/context/auth-context';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function FaceReadingPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +19,7 @@ export default function FaceReadingPage() {
   const [imageDataUri, setImageDataUri] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleAnalysis = async () => {
     if (!imageDataUri) {
@@ -32,6 +36,15 @@ export default function FaceReadingPage() {
     try {
       const analysis = await interpretFaceImage({ photoDataUri: imageDataUri, description });
       setResult(analysis);
+
+      if (user) {
+        await addDoc(collection(db, 'results'), {
+          userId: user.uid,
+          type: 'face-reading',
+          data: analysis,
+          createdAt: serverTimestamp(),
+        });
+      }
     } catch (error) {
       console.error('Error analyzing face image:', error);
       toast({

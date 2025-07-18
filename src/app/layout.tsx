@@ -6,6 +6,7 @@ import { SiteHeader } from '@/components/common/site-header';
 import { SidebarNav } from '@/components/common/sidebar-nav';
 import { Toaster } from '@/components/ui/toaster';
 import { BackgroundStars } from '@/components/common/background-stars';
+import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
   title: 'Astro AI',
@@ -25,21 +26,23 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn('font-body antialiased relative')}>
-        <BackgroundStars />
-        <SidebarProvider>
-          <Sidebar collapsible="icon">
-            <SidebarNav />
-          </Sidebar>
-          <SidebarInset>
-            <div className="flex flex-col min-h-screen">
-              <SiteHeader />
-              <main className="flex-1 p-4 md:p-8 z-10">
-                {children}
-              </main>
-            </div>
-          </SidebarInset>
-        </SidebarProvider>
-        <Toaster />
+        <AuthProvider>
+          <BackgroundStars />
+          <SidebarProvider>
+            <Sidebar collapsible="icon">
+              <SidebarNav />
+            </Sidebar>
+            <SidebarInset>
+              <div className="flex flex-col min-h-screen">
+                <SiteHeader />
+                <main className="flex-1 p-4 md:p-8 z-10">
+                  {children}
+                </main>
+              </div>
+            </SidebarInset>
+          </SidebarProvider>
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );
