@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, deleteDoc, DocumentData } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, deleteDoc, updateDoc, DocumentData } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -22,7 +22,7 @@ type Result = DocumentData & {
         seconds: number;
         nanoseconds: number;
     };
-    translatedData?: Record<string, any>;
+    translations?: Record<string, any>;
 };
 
 const languages = [
@@ -57,7 +57,6 @@ export default function ResultsPage() {
     const [translationState, setTranslationState] = useState<Record<string, {
         isTranslating: boolean;
         selectedLanguage: string;
-        translatedData?: any;
     }>>({});
     const { toast } = useToast();
 
@@ -123,9 +122,13 @@ export default function ResultsPage() {
     };
     
     const handleTranslate = async (resultId: string) => {
-        const { selectedLanguage } = translationState[resultId];
+        const { selectedLanguage } = translationState[resultId] || {};
         const currentResult = results.find(r => r.id === resultId);
         if (!selectedLanguage || selectedLanguage === 'English' || !currentResult) return;
+
+        if (currentResult.translations?.[selectedLanguage]) {
+            return; // Already cached, do nothing.
+        }
 
         setTranslationState(prev => ({
             ...prev,
@@ -135,10 +138,18 @@ export default function ResultsPage() {
         try {
             const { translatedObject } = await translateObject({ objectToTranslate: currentResult.data, targetLanguage: selectedLanguage });
             
-            setTranslationState(prev => ({
-                ...prev,
-                [resultId]: { ...prev[resultId], isTranslating: false, translatedData: translatedObject }
-            }));
+            const resultDocRef = doc(db, 'results', resultId);
+            await updateDoc(resultDocRef, {
+                [`translations.${selectedLanguage}`]: translatedObject,
+            });
+
+            setResults(prevResults =>
+                prevResults.map(r =>
+                    r.id === resultId
+                        ? { ...r, translations: { ...(r.translations || {}), [selectedLanguage]: translatedObject } }
+                        : r
+                )
+            );
             
         } catch (error) {
             console.error("Translation error:", error);
@@ -147,6 +158,7 @@ export default function ResultsPage() {
                 description: "Failed to translate the result.",
                 variant: "destructive"
             });
+        } finally {
              setTranslationState(prev => ({
                 ...prev,
                 [resultId]: { ...prev[resultId], isTranslating: false }
@@ -159,17 +171,12 @@ export default function ResultsPage() {
             ...prev,
             [resultId]: { ...prev[resultId], selectedLanguage: language }
         }));
-         if (language === 'English') {
-            setTranslationState(prev => {
-                const newState = { ...prev };
-                delete newState[resultId]?.translatedData;
-                return newState;
-            });
-        }
     };
     
     const getResultContent = (result: Result) => {
-        const data = translationState[result.id]?.translatedData || result.data;
+        const selectedLanguage = translationState[result.id]?.selectedLanguage || 'English';
+        const data = result.translations?.[selectedLanguage] || result.data;
+        
         switch (result.type) {
             case 'astrology':
                 return (
@@ -258,7 +265,7 @@ export default function ResultsPage() {
                                 <div className="flex items-center gap-2 pt-2 border-t">
                                      <Select 
                                          onValueChange={(lang) => handleLanguageChange(result.id, lang)}
-                                         defaultValue="English"
+                                         defaultValue={translationState[result.id]?.selectedLanguage || 'English'}
                                      >
                                         <SelectTrigger className="w-[180px]">
                                             <SelectValue placeholder="Select Language" />
