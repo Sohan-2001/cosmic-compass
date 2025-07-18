@@ -190,7 +190,15 @@ export default function ResultsPage() {
                     </div>
                 );
             case 'palmistry':
-                return <p>{data.analysis}</p>;
+                return (
+                    <div className="space-y-2">
+                        <p><strong>Summary:</strong> {data.summary}</p>
+                        <p><strong>Life Line:</strong> {data.lifeLine}</p>
+                        <p><strong>Head Line:</strong> {data.headLine}</p>
+                        <p><strong>Heart Line:</strong> {data.heartLine}</p>
+                        <p><strong>Fate Line:</strong> {data.fateLine}</p>
+                    </div>
+                );
             case 'face-reading':
                 return (
                     <div className="space-y-2">

@@ -5,7 +5,7 @@ import { analyzePalmImage, type AnalyzePalmImageOutput } from '@/ai/flows/analyz
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Hand, Sparkles } from 'lucide-react';
+import { Loader2, Hand, Sparkles, Heart, Brain, LineChart, BookOpen } from 'lucide-react';
 import { ImageUploader } from '@/components/common/image-uploader';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
@@ -98,10 +98,42 @@ export default function PalmistryPage() {
           <h2 className="font-headline text-4xl text-center">Your Palm Reading</h2>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Hand className="text-accent" /> AI-Generated Analysis</CardTitle>
+              <CardTitle className="flex items-center gap-2"><BookOpen className="text-accent" /> Summary</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground whitespace-pre-wrap">{result.analysis}</p>
+              <p className="text-muted-foreground whitespace-pre-wrap">{result.summary}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><LineChart className="text-accent" /> Life Line</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground whitespace-pre-wrap">{result.lifeLine}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Brain className="text-accent" /> Head Line</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground whitespace-pre-wrap">{result.headLine}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Heart className="text-accent" /> Heart Line</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground whitespace-pre-wrap">{result.heartLine}</p>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Hand className="text-accent" /> Fate Line</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground whitespace-pre-wrap">{result.fateLine}</p>
             </CardContent>
           </Card>
         </div>

@@ -21,7 +21,11 @@ const AnalyzePalmImageInputSchema = z.object({
 export type AnalyzePalmImageInput = z.infer<typeof AnalyzePalmImageInputSchema>;
 
 const AnalyzePalmImageOutputSchema = z.object({
-  analysis: z.string().describe('The AI-powered palmistry analysis.'),
+  summary: z.string().describe('A brief summary of the overall palm reading.'),
+  lifeLine: z.string().describe('Analysis of the life line, indicating vitality, health, and major life changes.'),
+  headLine: z.string().describe('Analysis of the head line, representing intellect, learning style, and communication.'),
+  heartLine: z.string().describe('Analysis of the heart line, related to emotional stability, romantic perspectives, and relationships.'),
+  fateLine: z.string().describe("Analysis of the fate line (if present), indicating the degree to which a person's life is affected by external circumstances."),
 });
 export type AnalyzePalmImageOutput = z.infer<typeof AnalyzePalmImageOutputSchema>;
 
@@ -33,7 +37,13 @@ const prompt = ai.definePrompt({
   name: 'analyzePalmImagePrompt',
   input: {schema: AnalyzePalmImageInputSchema},
   output: {schema: AnalyzePalmImageOutputSchema},
-  prompt: `You are an expert palm reader. Analyze the provided palm image and provide a detailed palmistry analysis, including insights about the person's character, future, and potential.
+  prompt: `You are an expert palm reader. Analyze the provided palm image and provide a detailed palmistry analysis. Fill in each field of the output schema with a detailed interpretation. Do not use markdown formatting.
+
+- summary: A brief summary of the overall palm reading.
+- lifeLine: Analysis of the life line, indicating vitality, health, and major life changes.
+- headLine: Analysis of the head line, representing intellect, learning style, and communication.
+- heartLine: Analysis of the heart line, related to emotional stability, romantic perspectives, and relationships.
+- fateLine: Analysis of the fate line (if present), indicating the degree to which a person's life is affected by external circumstances.
 
 Palm Image: {{media url=palmImageDataUri}}`,
 });
