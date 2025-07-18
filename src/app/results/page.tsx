@@ -197,6 +197,9 @@ export default function ResultsPage() {
                         <p><strong>Head Line:</strong> {data.headLine}</p>
                         <p><strong>Heart Line:</strong> {data.heartLine}</p>
                         <p><strong>Fate Line:</strong> {data.fateLine}</p>
+                        {data.probableEvents && <p><strong>Probable Events:</strong> {data.probableEvents}</p>}
+                        {data.futureOutlook && <p><strong>Future Outlook:</strong> {data.futureOutlook}</p>}
+                        {data.limitations && <p><strong>Limitations:</strong> {data.limitations}</p>}
                     </div>
                 );
             case 'face-reading':

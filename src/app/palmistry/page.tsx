@@ -5,7 +5,7 @@ import { analyzePalmImage, type AnalyzePalmImageOutput } from '@/ai/flows/analyz
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Hand, Sparkles, Heart, Brain, LineChart, BookOpen } from 'lucide-react';
+import { Loader2, Hand, Sparkles, Heart, Brain, LineChart, BookOpen, Zap, TrendingUp, ShieldAlert } from 'lucide-react';
 import { ImageUploader } from '@/components/common/image-uploader';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
@@ -134,6 +134,30 @@ export default function PalmistryPage() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground whitespace-pre-wrap">{result.fateLine}</p>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Zap className="text-accent" /> Probable Big Events</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground whitespace-pre-wrap">{result.probableEvents}</p>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><TrendingUp className="text-accent" /> Future Outlook</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground whitespace-pre-wrap">{result.futureOutlook}</p>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-accent" /> Limitations</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground whitespace-pre-wrap">{result.limitations}</p>
             </CardContent>
           </Card>
         </div>
