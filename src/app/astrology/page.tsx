@@ -59,7 +59,6 @@ export default function AstrologyPage() {
     setIsLoading(true);
     setDeterminedSign(null);
     try {
-      // The getZodiacFromDate flow defaults to Western astrology, which is fine for this initial check.
       const { zodiacSign } = await getZodiacFromDate({ birthDate: values.birthDate });
       setDeterminedSign(zodiacSign);
       setStep('confirmation');
@@ -76,17 +75,21 @@ export default function AstrologyPage() {
     }
   }
 
-  async function generateChart(manualSign?: string) {
+  async function generateChart() {
     setIsGenerating(true);
     setResult(null);
 
     const values = form.getValues();
-    const finalSign = manualSign || determinedSign;
 
     try {
+      // The manual sign from the correction step is no longer needed here,
+      // as the main flow will calculate the sign based on the system.
+      // We still pass the core birth details.
       const chart = await interpretAstrologicalChart({
-        ...values,
-        birthDate: `${values.birthDate} (Zodiac: ${finalSign})`,
+        birthDate: values.birthDate,
+        birthTime: values.birthTime,
+        birthLocation: values.birthLocation,
+        astrologySystem: values.astrologySystem,
       });
       setResult(chart);
       setStep('result');
@@ -110,6 +113,19 @@ export default function AstrologyPage() {
       setIsGenerating(false);
     }
   }
+  
+  // This function is now only used if the user explicitly corrects their sign.
+  // The main generateChart function handles both "yes" and "no" paths now.
+  async function handleCorrectionSubmit() {
+    const zodiacSign = form.getValues('zodiacSign');
+    if (!zodiacSign) {
+        toast({ title: 'Please select a sign', variant: 'destructive' });
+        return;
+    }
+    // We move directly to generation after correction.
+    await generateChart();
+  }
+
 
   const renderInputForm = () => (
     <Card className="mb-8 bg-card/50 backdrop-blur-sm">
@@ -219,12 +235,15 @@ export default function AstrologyPage() {
           <p className="text-4xl font-headline">{determinedSign}</p>
           <div className="flex gap-4 mt-4">
             <Button onClick={() => generateChart()} disabled={isGenerating} size="lg">
-              <Check className="mr-2" /> Yes, Correct
+              <Check className="mr-2" /> Yes, Generate Chart
             </Button>
             <Button variant="outline" onClick={() => setStep('correction')} disabled={isGenerating}>
-              <X className="mr-2" /> No, Incorrect
+              <X className="mr-2" /> No, Let Me Choose
             </Button>
           </div>
+           <p className="text-xs text-muted-foreground mt-4">
+            Note: Your final reading will use the '{form.getValues('astrologySystem')}' system you selected.
+          </p>
         </CardContent>
       </Card>
     </Form>
@@ -234,38 +253,20 @@ export default function AstrologyPage() {
     <Form {...form}>
       <Card className="mb-8 bg-card/50 backdrop-blur-sm animate-in fade-in-50">
         <CardHeader>
-          <CardTitle>Select Your Correct Zodiac Sign</CardTitle>
-          <CardDescription>Please choose your sign from the list below to proceed.</CardDescription>
+          <CardTitle>Your sign seems different in the selected system.</CardTitle>
+          <CardDescription>To ensure the most accurate reading with the '{form.getValues('astrologySystem')}' system, we will proceed using your birth details directly.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <FormField
-            control={form.control}
-            name="zodiacSign"
-            render={({ field }) => (
-              <FormItem>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your Zodiac sign..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {horoscopes.map(h => (
-                      <SelectItem key={h.sign} value={h.sign}>{h.sign}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <CardContent className="text-center">
+            <p className="text-muted-foreground mb-6">
+                Astrological systems like Vedic and Western can result in different zodiac signs for the same date. We will use the system you chose to generate the most accurate chart.
+            </p>
           <Button
-            onClick={() => generateChart(form.getValues('zodiacSign'))}
-            disabled={isGenerating || !form.watch('zodiacSign')}
+            onClick={() => generateChart()}
+            disabled={isGenerating}
             className="w-full mt-6"
           >
             {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
-            Generate My Chart
+            Generate My Chart with '{form.getValues('astrologySystem')}'
           </Button>
         </CardContent>
       </Card>

@@ -3,7 +3,7 @@
 /**
  * @fileOverview An AI agent for determining a zodiac sign from a birth date.
  *
- * - getZodiacFromDate - A function that returns the zodiac sign for a given birth date.
+ * - getZodiacFromDate - A function that returns the zodiac sign for a given birth date using the Western Tropical system.
  * - GetZodiacFromDateInput - The input type for the getZodiacFromDate function.
  * - GetZodiacFromDateOutput - The return type for the getZodiacFromDate function.
  */
@@ -31,7 +31,7 @@ const prompt = ai.definePrompt({
   name: 'getZodiacFromDatePrompt',
   input: {schema: GetZodiacFromDateInputSchema},
   output: {schema: GetZodiacFromDateOutputSchema},
-  prompt: `You are an expert astrologer. Based on the following birth date, determine the user's Zodiac sun sign using the Western (Tropical) astrology system.
+  prompt: `You are an expert astrologer. Based on the following birth date, determine the user's Zodiac sun sign using ONLY the Western (Tropical) astrology system. This is for a quick check, not a full reading.
 
   Birth Date: {{{birthDate}}}
 

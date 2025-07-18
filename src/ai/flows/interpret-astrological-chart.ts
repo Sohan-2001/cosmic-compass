@@ -13,7 +13,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const InterpretAstrologicalChartInputSchema = z.object({
-  birthDate: z.string().describe('The date of birth (e.g., YYYY-MM-DD). The correct Zodiac sign is also provided in parenthesis for accuracy.'),
+  birthDate: z.string().describe('The date of birth (e.g., YYYY-MM-DD).'),
   birthTime: z.string().describe('The time of birth (e.g., HH:MM in 24-hour format).'),
   birthLocation: z.string().describe('The location of birth (city, country).'),
   astrologySystem: z.string().describe('The astrological system to use (e.g., "Western (Tropical)", "Vedic (Sidereal)").'),
@@ -44,7 +44,7 @@ const prompt = ai.definePrompt({
 
   Astrological System to use: {{{astrologySystem}}}
   
-  You must perform your analysis using the system specified above. Take the birth location into account for accurate calculations. The user has also confirmed their Zodiac sign, which is provided with the birth date - use that as the primary sun sign for the reading.
+  You must perform your analysis using the system specified above. Calculate the correct sun sign and other planetary positions based *only* on the birth date, time, location, and the chosen system. Take the birth location into account for accurate calculations.
 
   In addition, provide the following forecasts based on the principles of the selected system:
   - A brief forecast for the next month.
