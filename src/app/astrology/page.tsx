@@ -47,7 +47,7 @@ export default function AstrologyPage() {
       birthDate: '',
       birthTime: '',
       birthLocation: '',
-      astrologySystem: 'Western (Tropical)',
+      astrologySystem: 'Vedic (Sidereal)',
       zodiacSign: '',
     },
   });
@@ -149,8 +149,8 @@ export default function AstrologyPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Western (Tropical)">Western (Tropical)</SelectItem>
                         <SelectItem value="Vedic (Sidereal)">Vedic (Sidereal)</SelectItem>
+                        <SelectItem value="Western (Tropical)">Western (Tropical)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>
