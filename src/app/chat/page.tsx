@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { aiAstrologerChat } from '@/ai/flows/ai-astrologer-chat';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
