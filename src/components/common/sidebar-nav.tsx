@@ -6,7 +6,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { Bot, Hand, Home, Sparkles, User, Wand2, Star, LogIn, LogOut } from 'lucide-react';
+import { Bot, Hand, Home, Sparkles, User, Wand2, Star, LogIn, LogOut, Sun } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '../ui/button';
@@ -18,6 +18,7 @@ const links = [
   { href: '/astrology', label: 'AI Astrology', icon: Sparkles },
   { href: '/palmistry', label: 'AI Palmistry', icon: Hand },
   { href: '/face-reading', label: 'AI Face Reading', icon: User },
+  { href: '/zodiac-signs', label: 'Zodiac Signs', icon: Sun },
   { href: '/chat', label: 'AI Astrologer Chat', icon: Bot },
 ];
 

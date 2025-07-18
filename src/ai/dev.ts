@@ -6,3 +6,4 @@ import '@/ai/flows/analyze-palm-image.ts';
 import '@/ai/flows/ai-astrologer-chat.ts';
 import '@/ai/flows/interpret-face-image.ts';
 import '@/ai/flows/translate-text.ts';
+import '@/ai/flows/get-zodiac-details.ts';
