@@ -31,7 +31,10 @@ export async function translateObject(input: TranslateObjectInput): Promise<Tran
 
 const prompt = ai.definePrompt({
   name: 'translateObjectPrompt',
-  input: {schema: TranslateObjectInputSchema},
+  input: {schema: z.object({
+    jsonString: z.string(),
+    targetLanguage: z.string(),
+  })},
   output: {schema: TranslateObjectOutputSchema},
   prompt: `You are a translation expert. Your task is to translate all the string values within the given JSON object to {{{targetLanguage}}}.
 
@@ -41,7 +44,7 @@ const prompt = ai.definePrompt({
   - Return only the fully translated JSON object.
 
   JSON object to translate:
-  {{{jsonStringify objectToTranslate}}}
+  {{{jsonString}}}
   `,
 });
 
@@ -52,7 +55,11 @@ const translateObjectFlow = ai.defineFlow(
     outputSchema: TranslateObjectOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const jsonString = JSON.stringify(input.objectToTranslate, null, 2);
+    const {output} = await prompt({
+        jsonString: jsonString,
+        targetLanguage: input.targetLanguage,
+    });
     return output!;
   }
 );
