@@ -8,7 +8,7 @@ import { interpretAstrologicalChart, type InterpretAstrologicalChartOutput } fro
 import { getZodiacFromDate } from '@/ai/flows/get-zodiac-from-date';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +26,7 @@ const formSchema = z.object({
   birthDate: z.string().min(1, 'Birth date is required'),
   birthTime: z.string().min(1, 'Birth time is required'),
   birthLocation: z.string().min(1, 'Birth location is required'),
+  astrologySystem: z.string({ required_error: 'Please select an astrology system.' }),
   zodiacSign: z.string().optional(),
 });
 
@@ -46,6 +47,7 @@ export default function AstrologyPage() {
       birthDate: '',
       birthTime: '',
       birthLocation: '',
+      astrologySystem: 'Western (Tropical)',
       zodiacSign: '',
     },
   });
@@ -57,6 +59,7 @@ export default function AstrologyPage() {
     setIsLoading(true);
     setDeterminedSign(null);
     try {
+      // The getZodiacFromDate flow defaults to Western astrology, which is fine for this initial check.
       const { zodiacSign } = await getZodiacFromDate({ birthDate: values.birthDate });
       setDeterminedSign(zodiacSign);
       setStep('confirmation');
@@ -117,6 +120,30 @@ export default function AstrologyPage() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleInitialSubmit)} className="space-y-6">
+             <FormField
+                control={form.control}
+                name="astrologySystem"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Astrology System</FormLabel>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an astrology system" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Western (Tropical)">Western (Tropical)</SelectItem>
+                        <SelectItem value="Vedic (Sidereal)">Vedic (Sidereal)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Choose the system you prefer for your reading.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             <div className="grid md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -184,6 +211,7 @@ export default function AstrologyPage() {
     <Card className="mb-8 bg-card/50 backdrop-blur-sm text-center animate-in fade-in-50">
       <CardHeader>
         <CardTitle>Is this your Zodiac Sign?</CardTitle>
+        <CardDescription>(Based on Western Astrology)</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
         {determinedSign && <ZodiacIcon sign={determinedSign} className="w-24 h-24 text-accent" />}

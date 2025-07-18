@@ -16,6 +16,7 @@ const InterpretAstrologicalChartInputSchema = z.object({
   birthDate: z.string().describe('The date of birth (e.g., YYYY-MM-DD). The correct Zodiac sign is also provided in parenthesis for accuracy.'),
   birthTime: z.string().describe('The time of birth (e.g., HH:MM in 24-hour format).'),
   birthLocation: z.string().describe('The location of birth (city, country).'),
+  astrologySystem: z.string().describe('The astrological system to use (e.g., "Western (Tropical)", "Vedic (Sidereal)").'),
 });
 
 export type InterpretAstrologicalChartInput = z.infer<typeof InterpretAstrologicalChartInputSchema>;
@@ -39,11 +40,17 @@ const prompt = ai.definePrompt({
   name: 'interpretAstrologicalChartPrompt',
   input: {schema: InterpretAstrologicalChartInputSchema},
   output: {schema: InterpretAstrologicalChartOutputSchema},
-  prompt: `You are an expert astrologer specializing in interpreting astrological charts using the Vedic Astrology (Jyotish) system, which is based on the Sidereal Zodiac.
+  prompt: `You are an expert astrologer. Your task is to provide a comprehensive interpretation of the user's astrological chart based on the provided birth details and the selected astrological system.
 
-  Based on the provided birth details, provide a comprehensive interpretation of the user's astrological chart. You must take the birth location into account to apply the correct time zone and calculations for an accurate Vedic reading. The user has also confirmed their Zodiac sign, which is provided with the birth date - use that as the primary sun sign for the reading.
+  Astrological System to use: {{{astrologySystem}}}
+  
+  {{#if (eq astrologySystem "Vedic (Sidereal)")}}
+  You must use the Vedic Astrology (Jyotish) system, which is based on the Sidereal Zodiac. Take the birth location into account to apply the correct time zone and calculations for an accurate Vedic reading. The user has also confirmed their Zodiac sign, which is provided with the birth date - use that as the primary sun sign for the reading.
+  {{else}}
+  You must use the Western (Tropical) Astrology system. Take the birth location into account for accurate house calculations. The user has also confirmed their Zodiac sign, which is provided with the birth date - use that as the primary sun sign for the reading.
+  {{/if}}
 
-  In addition, provide the following forecasts based on Vedic principles:
+  In addition, provide the following forecasts based on the principles of the selected system:
   - A brief forecast for the next month.
   - A brief forecast for the next three years.
   - A prediction of any significant life events that may occur, including the probable timing.
