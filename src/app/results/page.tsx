@@ -35,6 +35,17 @@ const languages = [
     { value: 'Russian', label: 'Russian' },
     { value: 'Arabic', label: 'Arabic' },
     { value: 'Hindi', label: 'Hindi' },
+    { value: 'Bengali', label: 'Bengali' },
+    { value: 'Marathi', label: 'Marathi' },
+    { value: 'Telugu', label: 'Telugu' },
+    { value: 'Tamil', label: 'Tamil' },
+    { value: 'Gujarati', label: 'Gujarati' },
+    { value: 'Urdu', label: 'Urdu' },
+    { value: 'Kannada', label: 'Kannada' },
+    { value: 'Odia', label: 'Odia' },
+    { value: 'Malayalam', label: 'Malayalam' },
+    { value: 'Punjabi', label: 'Punjabi' },
+    { value: 'Assamese', label: 'Assamese' },
 ];
 
 export default function ResultsPage() {
