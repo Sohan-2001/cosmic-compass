@@ -13,7 +13,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const InterpretAstrologicalChartInputSchema = z.object({
-  birthDate: z.string().describe('The date of birth (e.g., YYYY-MM-DD).'),
+  birthDate: z.string().describe('The date of birth (e.g., YYYY-MM-DD). The correct Zodiac sign is also provided in parenthesis for accuracy.'),
   birthTime: z.string().describe('The time of birth (e.g., HH:MM in 24-hour format).'),
   birthLocation: z.string().describe('The location of birth (city, country).'),
 });
@@ -41,7 +41,7 @@ const prompt = ai.definePrompt({
   output: {schema: InterpretAstrologicalChartOutputSchema},
   prompt: `You are an expert astrologer specializing in interpreting astrological charts.
 
-  Based on the provided birth details, provide a comprehensive interpretation of the user's astrological chart, including their personality traits, life tendencies, and key insights.
+  Based on the provided birth details, provide a comprehensive interpretation of the user's astrological chart, including their personality traits, life tendencies, and key insights. The user has confirmed their Zodiac sign, which is provided with the birth date - use that as the primary sun sign for the reading.
 
   In addition, provide the following forecasts:
   - A brief forecast for the next month.
