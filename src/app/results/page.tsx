@@ -5,11 +5,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, orderBy, DocumentData } from 'firebase/firestore';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { collection, query, where, getDocs, doc, deleteDoc, DocumentData } from 'firebase/firestore';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Loader2, Star, Hand, User as UserIcon, Bot, FileText } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Loader2, Star, Hand, User as UserIcon, Bot, FileText, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 type Result = DocumentData & {
     id: string;
@@ -24,6 +27,8 @@ export default function ResultsPage() {
     const router = useRouter();
     const [results, setResults] = useState<Result[]>([]);
     const [isLoadingResults, setIsLoadingResults] = useState(true);
+    const [resultToDelete, setResultToDelete] = useState<Result | null>(null);
+    const { toast } = useToast();
 
     useEffect(() => {
         if (loading) return;
@@ -52,13 +57,41 @@ export default function ResultsPage() {
                 setResults(userResults);
             } catch (error) {
                 console.error("Error fetching results:", error);
+                toast({
+                    title: "Error",
+                    description: "Could not fetch your saved results.",
+                    variant: "destructive"
+                });
             } finally {
                 setIsLoadingResults(false);
             }
         };
 
         fetchResults();
-    }, [user, loading, router]);
+    }, [user, loading, router, toast]);
+
+    const handleDelete = async () => {
+        if (!resultToDelete) return;
+
+        try {
+            await deleteDoc(doc(db, 'results', resultToDelete.id));
+            setResults(results.filter(r => r.id !== resultToDelete.id));
+            toast({
+                title: "Success",
+                description: "Result deleted successfully.",
+            });
+        } catch (error) {
+            console.error("Error deleting result:", error);
+            toast({
+                title: "Error",
+                description: "Could not delete the result. Please try again.",
+                variant: "destructive"
+            });
+        } finally {
+            setResultToDelete(null);
+        }
+    };
+
 
     const renderResultContent = (result: Result) => {
         switch (result.type) {
@@ -119,12 +152,24 @@ export default function ResultsPage() {
                     {results.map(result => (
                         <AccordionItem value={result.id} key={result.id} className="bg-card/50 backdrop-blur-sm border rounded-lg">
                             <AccordionTrigger className="p-4 text-lg font-medium hover:no-underline">
-                               <div className="flex items-center gap-4">
+                               <div className="flex items-center gap-4 w-full">
                                  {getIcon(result.type)}
                                  <span className="capitalize">{result.type} Reading</span>
-                                 <span className="text-sm text-muted-foreground ml-auto">
+                                 <span className="text-sm text-muted-foreground ml-auto mr-4">
                                     {format(new Date(result.createdAt.seconds * 1000), 'PPP p')}
                                  </span>
+                                 <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setResultToDelete(result);
+                                    }}
+                                 >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span className="sr-only">Delete result</span>
+                                 </Button>
                                </div>
                             </AccordionTrigger>
                             <AccordionContent className="p-4 pt-0 text-muted-foreground space-y-2">
@@ -143,6 +188,21 @@ export default function ResultsPage() {
                     </CardContent>
                 </Card>
             )}
+
+            <AlertDialog open={!!resultToDelete} onOpenChange={(open) => !open && setResultToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete this result from our servers.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setResultToDelete(null)}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
