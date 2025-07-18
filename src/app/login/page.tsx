@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
@@ -22,8 +23,57 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+interface AuthFormProps {
+  type: 'signIn' | 'signUp';
+  form: UseFormReturn<FormValues>;
+  onSubmit: (values: FormValues) => void;
+  isLoading: boolean;
+}
+
+const AuthForm = ({ type, form, onSubmit, isLoading }: AuthFormProps) => (
+  <Form {...form}>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <FormField
+        control={form.control}
+        name="email"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <Input type="email" placeholder="you@example.com" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="password"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Password</FormLabel>
+            <FormControl>
+              <Input type="password" placeholder="••••••••" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <LogIn className="mr-2 h-4 w-4" />
+        )}
+        {type === 'signIn' ? 'Sign In' : 'Sign Up'}
+      </Button>
+    </form>
+  </Form>
+);
+
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'signIn' | 'signUp'>('signIn');
   const { toast } = useToast();
   const router = useRouter();
 
@@ -35,10 +85,10 @@ export default function LoginPage() {
     },
   });
 
-  const handleAuthAction = async (values: FormValues, action: 'signIn' | 'signUp') => {
+  const handleAuthAction = async (values: FormValues) => {
     setIsLoading(true);
     try {
-      if (action === 'signIn') {
+      if (activeTab === 'signIn') {
         await signInWithEmailAndPassword(auth, values.email, values.password);
         toast({ title: 'Success', description: 'Signed in successfully.' });
       } else {
@@ -47,10 +97,10 @@ export default function LoginPage() {
       }
       router.push('/');
     } catch (error: any) {
-      console.error(`${action} error:`, error);
+      console.error(`${activeTab} error:`, error);
       toast({
         title: 'Error',
-        description: error.message || `Failed to ${action}. Please try again.`,
+        description: error.message || `Failed to ${activeTab}. Please try again.`,
         variant: 'destructive',
       });
     } finally {
@@ -58,50 +108,16 @@ export default function LoginPage() {
     }
   };
 
-  const AuthForm = ({ type }: { type: 'signIn' | 'signUp' }) => (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit((values) => handleAuthAction(values, type))} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="you@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" disabled={isLoading} className="w-full">
-          {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <LogIn className="mr-2 h-4 w-4" />
-          )}
-          {type === 'signIn' ? 'Sign In' : 'Sign Up'}
-        </Button>
-      </form>
-    </Form>
-  );
-
   return (
     <div className="max-w-md mx-auto">
-      <Tabs defaultValue="signIn" className="w-full">
+      <Tabs 
+        defaultValue="signIn" 
+        className="w-full"
+        onValueChange={(value) => {
+          setActiveTab(value as 'signIn' | 'signUp');
+          form.reset();
+        }}
+      >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="signIn">Sign In</TabsTrigger>
           <TabsTrigger value="signUp">Sign Up</TabsTrigger>
@@ -113,7 +129,7 @@ export default function LoginPage() {
               <CardDescription>Enter your credentials to access your account.</CardDescription>
             </CardHeader>
             <CardContent>
-              <AuthForm type="signIn" />
+              <AuthForm type="signIn" form={form} onSubmit={handleAuthAction} isLoading={isLoading} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -124,7 +140,7 @@ export default function LoginPage() {
               <CardDescription>Enter your email and password to get started.</CardDescription>
             </CardHeader>
             <CardContent>
-              <AuthForm type="signUp" />
+              <AuthForm type="signUp" form={form} onSubmit={handleAuthAction} isLoading={isLoading} />
             </CardContent>
           </Card>
         </TabsContent>
