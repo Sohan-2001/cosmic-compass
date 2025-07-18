@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { getZodiacDetails, type GetZodiacDetailsOutput } from '@/ai/flows/get-zodiac-details';
-import { translateText } from '@/ai/flows/translate-text';
+import { translateObject } from '@/ai/flows/translate-text';
 import { horoscopes } from '@/data/horoscopes';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -105,29 +105,6 @@ export default function ZodiacSignsPage() {
     }
   };
 
-  const translateObject = async (obj: any, language: string): Promise<any> => {
-      const translatedObj: any = {};
-      for (const key in obj) {
-          if (typeof obj[key] === 'string') {
-              const { translatedText } = await translateText({ text: obj[key], targetLanguage: language });
-              translatedObj[key] = translatedText;
-          } else if (Array.isArray(obj[key])) {
-               translatedObj[key] = await Promise.all(
-                   obj[key].map(async (item: any) => {
-                       if (typeof item === 'string') {
-                           const { translatedText } = await translateText({ text: item, targetLanguage: language });
-                           return translatedText;
-                       }
-                       return item;
-                   })
-               );
-          } else {
-              translatedObj[key] = obj[key];
-          }
-      }
-      return translatedObj;
-  };
-
   const handleLanguageChange = async (language: string) => {
     setSelectedLanguage(language);
     if (!selectedSign || language === 'English') {
@@ -142,7 +119,13 @@ export default function ZodiacSignsPage() {
     setIsTranslating(true);
     try {
         const { translations, id, ...originalData } = selectedSign;
-        const translatedData = await translateObject(originalData, language);
+
+        // Call the new batch translation flow
+        const { translatedObject } = await translateObject({
+            objectToTranslate: originalData,
+            targetLanguage: language
+        });
+        const translatedData = translatedObject as GetZodiacDetailsOutput;
 
         // Update firestore with the new translation
         const docRef = doc(db, 'zodiac_signs', selectedSign.id);

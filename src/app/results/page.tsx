@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Star, Hand, User as UserIcon, FileText, Trash2, Languages } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { translateText, type TranslateTextOutput } from '@/ai/flows/translate-text';
+import { translateObject } from '@/ai/flows/translate-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Result = DocumentData & {
@@ -122,9 +122,10 @@ export default function ResultsPage() {
         }
     };
     
-    const handleTranslate = async (resultId: string, textToTranslate: string) => {
+    const handleTranslate = async (resultId: string) => {
         const { selectedLanguage } = translationState[resultId];
-        if (!selectedLanguage || selectedLanguage === 'English') return;
+        const currentResult = results.find(r => r.id === resultId);
+        if (!selectedLanguage || selectedLanguage === 'English' || !currentResult) return;
 
         setTranslationState(prev => ({
             ...prev,
@@ -132,15 +133,13 @@ export default function ResultsPage() {
         }));
 
         try {
-            const { translatedText } = await translateText({ text: textToTranslate, targetLanguage: selectedLanguage });
-            const currentResult = results.find(r => r.id === resultId);
-            if(currentResult) {
-                const updatedData = await translateResultData(currentResult.data, selectedLanguage);
-                setTranslationState(prev => ({
-                    ...prev,
-                    [resultId]: { ...prev[resultId], isTranslating: false, translatedData: updatedData }
-                }));
-            }
+            const { translatedObject } = await translateObject({ objectToTranslate: currentResult.data, targetLanguage: selectedLanguage });
+            
+            setTranslationState(prev => ({
+                ...prev,
+                [resultId]: { ...prev[resultId], isTranslating: false, translatedData: translatedObject }
+            }));
+            
         } catch (error) {
             console.error("Translation error:", error);
             toast({
@@ -153,19 +152,6 @@ export default function ResultsPage() {
                 [resultId]: { ...prev[resultId], isTranslating: false }
             }));
         }
-    };
-
-    const translateResultData = async (data: any, language: string): Promise<any> => {
-        const translatedData: any = {};
-        for (const key in data) {
-            if(typeof data[key] === 'string') {
-                const { translatedText } = await translateText({ text: data[key], targetLanguage: language });
-                translatedData[key] = translatedText;
-            } else {
-                translatedData[key] = data[key];
-            }
-        }
-        return translatedData;
     };
     
     const handleLanguageChange = (resultId: string, language: string) => {
@@ -244,16 +230,16 @@ export default function ResultsPage() {
                  <Accordion type="single" collapsible className="w-full space-y-4">
                     {results.map(result => (
                         <AccordionItem value={result.id} key={result.id} className="bg-card/50 backdrop-blur-sm border rounded-lg">
-                            <div className="flex items-center w-full p-4">
-                                <AccordionTrigger className="p-0 text-lg font-medium hover:no-underline flex-1">
-                                <div className="flex items-center gap-4">
+                           <AccordionTrigger className="text-lg w-full font-medium hover:no-underline p-4">
+                                <div className="flex items-center gap-4 flex-1">
                                     {getIcon(result.type)}
                                     <span className="capitalize">{result.type.replace('-', ' ')} Reading</span>
-                                    <span className="text-sm text-muted-foreground ml-auto pr-4">
+                                    <span className="text-sm text-muted-foreground ml-auto">
                                         {format(new Date(result.createdAt.seconds * 1000), 'PPP p')}
                                     </span>
                                 </div>
-                                </AccordionTrigger>
+                            </AccordionTrigger>
+                            <div className="px-4 pb-4">
                                 <Button
                                     variant="ghost"
                                     size="icon"
@@ -284,7 +270,7 @@ export default function ResultsPage() {
                                         </SelectContent>
                                     </Select>
                                     <Button 
-                                        onClick={() => handleTranslate(result.id, JSON.stringify(result.data))}
+                                        onClick={() => handleTranslate(result.id)}
                                         disabled={translationState[result.id]?.isTranslating || !translationState[result.id]?.selectedLanguage || translationState[result.id]?.selectedLanguage === 'English'}
                                     >
                                         {translationState[result.id]?.isTranslating ? (
