@@ -208,64 +208,68 @@ export default function AstrologyPage() {
   );
 
   const renderConfirmation = () => (
-    <Card className="mb-8 bg-card/50 backdrop-blur-sm text-center animate-in fade-in-50">
-      <CardHeader>
-        <CardTitle>Is this your Zodiac Sign?</CardTitle>
-        <CardDescription>(Based on Western Astrology)</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center gap-4">
-        {determinedSign && <ZodiacIcon sign={determinedSign} className="w-24 h-24 text-accent" />}
-        <p className="text-4xl font-headline">{determinedSign}</p>
-        <div className="flex gap-4 mt-4">
-          <Button onClick={() => generateChart()} disabled={isGenerating} size="lg">
-            <Check className="mr-2" /> Yes, Correct
-          </Button>
-          <Button variant="outline" onClick={() => setStep('correction')} disabled={isGenerating}>
-            <X className="mr-2" /> No, Incorrect
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+     <Form {...form}>
+      <Card className="mb-8 bg-card/50 backdrop-blur-sm text-center animate-in fade-in-50">
+        <CardHeader>
+          <CardTitle>Is this your Zodiac Sign?</CardTitle>
+          <CardDescription>(Based on Western Astrology)</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center gap-4">
+          {determinedSign && <ZodiacIcon sign={determinedSign} className="w-24 h-24 text-accent" />}
+          <p className="text-4xl font-headline">{determinedSign}</p>
+          <div className="flex gap-4 mt-4">
+            <Button onClick={() => generateChart()} disabled={isGenerating} size="lg">
+              <Check className="mr-2" /> Yes, Correct
+            </Button>
+            <Button variant="outline" onClick={() => setStep('correction')} disabled={isGenerating}>
+              <X className="mr-2" /> No, Incorrect
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </Form>
   );
   
   const renderCorrection = () => (
-     <Card className="mb-8 bg-card/50 backdrop-blur-sm animate-in fade-in-50">
+    <Form {...form}>
+      <Card className="mb-8 bg-card/50 backdrop-blur-sm animate-in fade-in-50">
         <CardHeader>
           <CardTitle>Select Your Correct Zodiac Sign</CardTitle>
           <CardDescription>Please choose your sign from the list below to proceed.</CardDescription>
         </CardHeader>
         <CardContent>
-            <FormField
-              control={form.control}
-              name="zodiacSign"
-              render={({ field }) => (
-                <FormItem>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your Zodiac sign..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {horoscopes.map(h => (
-                        <SelectItem key={h.sign} value={h.sign}>{h.sign}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button 
-                onClick={() => generateChart(form.getValues('zodiacSign'))} 
-                disabled={isGenerating || !form.getValues('zodiacSign')} 
-                className="w-full mt-6"
-            >
-                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
-                Generate My Chart
-            </Button>
+          <FormField
+            control={form.control}
+            name="zodiacSign"
+            render={({ field }) => (
+              <FormItem>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your Zodiac sign..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {horoscopes.map(h => (
+                      <SelectItem key={h.sign} value={h.sign}>{h.sign}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button
+            onClick={() => generateChart(form.getValues('zodiacSign'))}
+            disabled={isGenerating || !form.watch('zodiacSign')}
+            className="w-full mt-6"
+          >
+            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
+            Generate My Chart
+          </Button>
         </CardContent>
-     </Card>
+      </Card>
+    </Form>
   );
 
   const renderResult = () => result && (
