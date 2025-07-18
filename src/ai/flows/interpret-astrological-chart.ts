@@ -1,4 +1,4 @@
-// src/ai/flows/interpret-astrological-chart.ts
+
 'use server';
 
 /**
@@ -44,11 +44,7 @@ const prompt = ai.definePrompt({
 
   Astrological System to use: {{{astrologySystem}}}
   
-  {{#if (eq astrologySystem "Vedic (Sidereal)")}}
-  You must use the Vedic Astrology (Jyotish) system, which is based on the Sidereal Zodiac. Take the birth location into account to apply the correct time zone and calculations for an accurate Vedic reading. The user has also confirmed their Zodiac sign, which is provided with the birth date - use that as the primary sun sign for the reading.
-  {{else}}
-  You must use the Western (Tropical) Astrology system. Take the birth location into account for accurate house calculations. The user has also confirmed their Zodiac sign, which is provided with the birth date - use that as the primary sun sign for the reading.
-  {{/if}}
+  You must perform your analysis using the system specified above. Take the birth location into account for accurate calculations. The user has also confirmed their Zodiac sign, which is provided with the birth date - use that as the primary sun sign for the reading.
 
   In addition, provide the following forecasts based on the principles of the selected system:
   - A brief forecast for the next month.
