@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -37,14 +38,17 @@ export default function ResultsPage() {
             try {
                 const q = query(
                     collection(db, 'results'),
-                    where('userId', '==', user.uid),
-                    orderBy('createdAt', 'desc')
+                    where('userId', '==', user.uid)
                 );
                 const querySnapshot = await getDocs(q);
                 const userResults = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
                 })) as Result[];
+
+                // Sort results by date on the client side
+                userResults.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+                
                 setResults(userResults);
             } catch (error) {
                 console.error("Error fetching results:", error);
