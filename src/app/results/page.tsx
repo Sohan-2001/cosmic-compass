@@ -151,27 +151,29 @@ export default function ResultsPage() {
                  <Accordion type="single" collapsible className="w-full space-y-4">
                     {results.map(result => (
                         <AccordionItem value={result.id} key={result.id} className="bg-card/50 backdrop-blur-sm border rounded-lg">
-                            <AccordionTrigger className="p-4 text-lg font-medium hover:no-underline">
-                               <div className="flex items-center gap-4 w-full">
-                                 {getIcon(result.type)}
-                                 <span className="capitalize">{result.type} Reading</span>
-                                 <span className="text-sm text-muted-foreground ml-auto mr-4">
-                                    {format(new Date(result.createdAt.seconds * 1000), 'PPP p')}
-                                 </span>
-                                 <Button
+                            <div className="flex items-center w-full">
+                                <AccordionTrigger className="p-4 text-lg font-medium hover:no-underline flex-1">
+                                <div className="flex items-center gap-4">
+                                    {getIcon(result.type)}
+                                    <span className="capitalize">{result.type} Reading</span>
+                                    <span className="text-sm text-muted-foreground ml-auto">
+                                        {format(new Date(result.createdAt.seconds * 1000), 'PPP p')}
+                                    </span>
+                                </div>
+                                </AccordionTrigger>
+                                <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                    className="h-8 w-8 mr-4 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setResultToDelete(result);
                                     }}
-                                 >
+                                >
                                     <Trash2 className="h-4 w-4" />
                                     <span className="sr-only">Delete result</span>
-                                 </Button>
-                               </div>
-                            </AccordionTrigger>
+                                </Button>
+                            </div>
                             <AccordionContent className="p-4 pt-0 text-muted-foreground space-y-2">
                                 {renderResultContent(result)}
                             </AccordionContent>
