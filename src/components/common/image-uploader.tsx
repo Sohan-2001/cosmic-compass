@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, type ChangeEvent } from 'react';
@@ -52,8 +53,11 @@ export function ImageUploader({ onImageUpload, onImageClear, disabled }: ImageUp
   return (
     <div className="w-full">
       <div className={cn(
-        "group relative flex justify-center items-center w-full h-64 rounded-lg border-2 border-dashed border-border transition-colors hover:border-accent",
-        preview && 'border-solid'
+        "group relative flex justify-center items-center w-full h-64 rounded-lg border-2 border-dashed border-border transition-colors",
+        {
+          'border-solid hover:border-accent': preview,
+          'hover:border-primary/50': !preview
+        }
       )}>
         {preview ? (
             <>
@@ -63,11 +67,16 @@ export function ImageUploader({ onImageUpload, onImageClear, disabled }: ImageUp
                 </Button>
             </>
         ) : (
-            <div className="text-center space-y-2 text-muted-foreground">
-                <UploadCloud className="mx-auto h-12 w-12" />
-                <Label htmlFor="file-upload">
-                    <p>Click to upload or drag and drop</p>
-                    <p className="text-xs">PNG, JPG, or WEBP (max 4MB)</p>
+            <div className="text-center space-y-4 text-muted-foreground">
+                <Label htmlFor="file-upload" className="cursor-pointer">
+                    <div className="flex flex-col items-center justify-center gap-2 rounded-md border border-input p-6 transition-colors hover:bg-accent hover:text-accent-foreground">
+                        <UploadCloud className="h-10 w-10" />
+                        <div>
+                            <p className="font-semibold">Click to upload</p>
+                            <p className="text-xs">or drag and drop</p>
+                        </div>
+                    </div>
+                    <p className="mt-2 text-xs">PNG, JPG, or WEBP (max 4MB)</p>
                 </Label>
                 <Input
                     id="file-upload"
