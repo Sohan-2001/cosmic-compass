@@ -8,3 +8,4 @@ import '@/ai/flows/interpret-face-image.ts';
 import '@/ai/flows/translate-text.ts';
 import '@/ai/flows/get-zodiac-details.ts';
 import '@/ai/flows/get-zodiac-from-date.ts';
+import '@/ai/flows/contextual-ai-astrologer-chat.ts';
