@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -19,6 +20,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { PlacesAutocomplete } from '@/components/common/places-autocomplete';
 import { horoscopes } from '@/data/horoscopes';
 import { ZodiacIcon } from '@/components/common/zodiac-icons';
+import { format } from 'date-fns';
 
 type Step = 'input' | 'confirmation' | 'correction' | 'result';
 
@@ -98,6 +100,7 @@ export default function AstrologyPage() {
         await addDoc(collection(db, 'results'), {
           userId: user.uid,
           type: 'astrology',
+          name: `Astrology Reading from ${format(new Date(), 'PPP p')}`,
           data: chart,
           createdAt: serverTimestamp(),
         });

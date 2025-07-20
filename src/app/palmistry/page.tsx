@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,6 +11,7 @@ import { ImageUploader } from '@/components/common/image-uploader';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { format } from 'date-fns';
 
 export default function PalmistryPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +40,7 @@ export default function PalmistryPage() {
         await addDoc(collection(db, 'results'), {
           userId: user.uid,
           type: 'palmistry',
+          name: `Palmistry Reading from ${format(new Date(), 'PPP p')}`,
           data: analysis,
           createdAt: serverTimestamp(),
         });

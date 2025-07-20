@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -12,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { format } from 'date-fns';
 
 export default function FaceReadingPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +43,7 @@ export default function FaceReadingPage() {
         await addDoc(collection(db, 'results'), {
           userId: user.uid,
           type: 'face-reading',
+          name: `Face Reading from ${format(new Date(), 'PPP p')}`,
           data: analysis,
           createdAt: serverTimestamp(),
         });

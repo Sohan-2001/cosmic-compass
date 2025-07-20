@@ -9,15 +9,19 @@ import { collection, query, where, getDocs, doc, deleteDoc, updateDoc, DocumentD
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, Star, Hand, User as UserIcon, FileText, Trash2, Languages } from 'lucide-react';
+import { Loader2, Star, Hand, User as UserIcon, FileText, Trash2, Languages, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { translateObject } from '@/ai/flows/translate-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 type Result = DocumentData & {
     id: string;
+    name: string;
     createdAt: {
         seconds: number;
         nanoseconds: number;
@@ -54,6 +58,9 @@ export default function ResultsPage() {
     const [results, setResults] = useState<Result[]>([]);
     const [isLoadingResults, setIsLoadingResults] = useState(true);
     const [resultToDelete, setResultToDelete] = useState<Result | null>(null);
+    const [resultToRename, setResultToRename] = useState<Result | null>(null);
+    const [newName, setNewName] = useState('');
+    const [isRenaming, setIsRenaming] = useState(false);
     const [translationState, setTranslationState] = useState<Record<string, {
         isTranslating: boolean;
         selectedLanguage: string;
@@ -121,6 +128,40 @@ export default function ResultsPage() {
         }
     };
     
+    const openRenameDialog = (result: Result) => {
+        setResultToRename(result);
+        setNewName(result.name || `My ${result.type.replace('-', ' ')} Reading`);
+    };
+
+    const handleRename = async () => {
+        if (!resultToRename || !newName.trim()) return;
+
+        setIsRenaming(true);
+        try {
+            const resultDocRef = doc(db, 'results', resultToRename.id);
+            await updateDoc(resultDocRef, {
+                name: newName.trim(),
+            });
+
+            setResults(results.map(r => r.id === resultToRename.id ? { ...r, name: newName.trim() } : r));
+            toast({
+                title: "Success",
+                description: "Result renamed successfully.",
+            });
+            setResultToRename(null);
+            setNewName('');
+        } catch (error) {
+            console.error("Error renaming result:", error);
+            toast({
+                title: "Error",
+                description: "Could not rename the result. Please try again.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsRenaming(false);
+        }
+    };
+
     const handleTranslate = async (resultId: string) => {
         const { selectedLanguage } = translationState[resultId] || {};
         const currentResult = results.find(r => r.id === resultId);
@@ -251,29 +292,41 @@ export default function ResultsPage() {
                            <AccordionTrigger className="text-lg w-full font-medium hover:no-underline p-4">
                                 <div className="flex items-center gap-4 flex-1">
                                     {getIcon(result.type)}
-                                    <span className="capitalize">{result.type.replace('-', ' ')} Reading</span>
-                                    <span className="text-sm text-muted-foreground ml-auto">
-                                        {format(new Date(result.createdAt.seconds * 1000), 'PPP p')}
+                                    <span className="capitalize text-left truncate">{result.name || `${result.type.replace('-', ' ')} Reading`}</span>
+                                    <span className="text-sm text-muted-foreground ml-auto flex-shrink-0">
+                                        {format(new Date(result.createdAt.seconds * 1000), 'PPP')}
                                     </span>
                                 </div>
                             </AccordionTrigger>
-                            <div className="px-4 pb-4">
+                            <div className="px-4 pb-4 border-b flex items-center justify-end gap-2">
                                 <Button
                                     variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                    size="sm"
+                                    className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        openRenameDialog(result);
+                                    }}
+                                >
+                                    <Pencil className="h-4 w-4 mr-2" />
+                                    Rename
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setResultToDelete(result);
                                     }}
                                 >
-                                    <Trash2 className="h-4 w-4" />
-                                    <span className="sr-only">Delete result</span>
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
                                 </Button>
                             </div>
-                            <AccordionContent className="p-4 pt-0 text-muted-foreground space-y-4">
+                            <AccordionContent className="p-4 pt-4 text-muted-foreground space-y-4">
                                 <div>{getResultContent(result)}</div>
-                                <div className="flex items-center gap-2 pt-2 border-t">
+                                <div className="flex items-center gap-2 pt-4 border-t">
                                      <Select 
                                          onValueChange={(lang) => handleLanguageChange(result.id, lang)}
                                          defaultValue={translationState[result.id]?.selectedLanguage || 'English'}
@@ -313,6 +366,34 @@ export default function ResultsPage() {
                     </CardContent>
                 </Card>
             )}
+
+            <Dialog open={!!resultToRename} onOpenChange={(open) => !open && setResultToRename(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Rename Result</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="name" className="text-right">Name</Label>
+                            <Input
+                                id="name"
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                className="col-span-3"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button type="button" variant="secondary">Cancel</Button>
+                        </DialogClose>
+                        <Button onClick={handleRename} disabled={isRenaming}>
+                            {isRenaming && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Save
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             <AlertDialog open={!!resultToDelete} onOpenChange={(open) => !open && setResultToDelete(null)}>
                 <AlertDialogContent>
