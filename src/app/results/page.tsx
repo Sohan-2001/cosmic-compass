@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, deleteDoc, updateDoc, DocumentData } from 'firebase/firestore';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, Star, Hand, User as UserIcon, FileText, Trash2, Languages, Pencil } from 'lucide-react';
+import { Loader2, Star, Hand, User as UserIcon, FileText, Trash2, Languages, Pencil, MessageSquare, Bot } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { translateObject } from '@/ai/flows/translate-text';
@@ -20,6 +20,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/context/language-context';
 import { languages as allLanguages } from '@/data/languages';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+
 
 type Result = DocumentData & {
     id: string;
@@ -112,7 +115,9 @@ export default function ResultsPage() {
         setResultToRename(result);
         const defaultName = result.type === 'astrology' ? t('results.type_astrology') :
                             result.type === 'palmistry' ? t('results.type_palmistry') :
-                            t('results.type_face_reading');
+                            result.type === 'face-reading' ? t('results.type_face_reading') :
+                            result.type === 'chat' ? t('results.type_chat') :
+                            'Reading';
         setNewName(result.name || `${defaultName}`);
     };
 
@@ -149,6 +154,40 @@ export default function ResultsPage() {
         const { selectedLanguage } = translationState[resultId] || {};
         const currentResult = results.find(r => r.id === resultId);
         if (!selectedLanguage || selectedLanguage === 'English' || !currentResult) return;
+
+        // For chat, we translate each message content.
+        if (currentResult.type === 'chat') {
+            if (currentResult.translations?.[selectedLanguage]) return; // Already cached
+            
+            setTranslationState(prev => ({ ...prev, [resultId]: { ...prev[resultId], isTranslating: true } }));
+            try {
+                const translatedMessages = await Promise.all(
+                    currentResult.data.messages.map(async (message: any) => {
+                         const { translatedObject } = await translateObject({ objectToTranslate: { content: message.content }, targetLanguage: selectedLanguage });
+                         return { ...message, content: translatedObject.content };
+                    })
+                );
+                 const translatedData = { ...currentResult.data, messages: translatedMessages };
+
+                const resultDocRef = doc(db, 'results', resultId);
+                await updateDoc(resultDocRef, {
+                    [`translations.${selectedLanguage}`]: translatedData,
+                });
+                setResults(prevResults =>
+                    prevResults.map(r =>
+                        r.id === resultId ? { ...r, translations: { ...(r.translations || {}), [selectedLanguage]: translatedData } } : r
+                    )
+                );
+
+            } catch(e) {
+                console.error("Translation error:", e);
+                toast({ title: t('common.error'), description: "Failed to translate the result.", variant: "destructive" });
+            } finally {
+                setTranslationState(prev => ({ ...prev, [resultId]: { ...prev[resultId], isTranslating: false } }));
+            }
+            return;
+        }
+
 
         if (currentResult.translations?.[selectedLanguage]) {
             return; // Already cached, do nothing.
@@ -234,6 +273,24 @@ export default function ResultsPage() {
                         <p><strong>{t('face_reading.fortune_prediction')}:</strong> {data.fortunePrediction}</p>
                     </div>
                 );
+             case 'chat':
+                return (
+                    <div className="space-y-4">
+                        {data.messages.map((message: any, index: number) => (
+                           <div key={index} className={cn('flex items-start gap-3', message.role === 'user' ? 'justify-end' : '')}>
+                              {message.role === 'assistant' && (
+                                <Avatar className="w-8 h-8"><AvatarFallback><Bot className="w-5 h-5"/></AvatarFallback></Avatar>
+                              )}
+                              <div className={cn('max-w-md p-3 rounded-lg text-sm', message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary')}>
+                                <p className="whitespace-pre-wrap">{message.content}</p>
+                              </div>
+                              {message.role === 'user' && (
+                                <Avatar className="w-8 h-8"><AvatarFallback><UserIcon className="w-5 h-5"/></AvatarFallback></Avatar>
+                              )}
+                            </div>
+                        ))}
+                    </div>
+                );
             default:
                 return <p>Unknown result type.</p>;
         }
@@ -247,6 +304,8 @@ export default function ResultsPage() {
                 return <Hand className="h-5 w-5 text-accent" />;
             case 'face-reading':
                 return <UserIcon className="h-5 w-5 text-accent" />;
+            case 'chat':
+                return <MessageSquare className="h-5 w-5 text-accent" />;
             default:
                 return <FileText className="h-5 w-5 text-accent" />;
         }
@@ -257,6 +316,7 @@ export default function ResultsPage() {
             case 'astrology': return t('results.type_astrology');
             case 'palmistry': return t('results.type_palmistry');
             case 'face-reading': return t('results.type_face_reading');
+            case 'chat': return t('results.type_chat');
             default: return 'Reading';
         }
     };

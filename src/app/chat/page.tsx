@@ -13,12 +13,16 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, Loader2, Send, Sparkles, User, ChevronDown, ChevronUp } from 'lucide-react';
+import { Bot, Loader2, Send, Sparkles, User, ChevronDown, ChevronUp, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { PlacesAutocomplete } from '@/components/common/places-autocomplete';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useTranslation } from '@/context/language-context';
+import { useAuth } from '@/context/auth-context';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { format } from 'date-fns';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -34,12 +38,14 @@ type SetupFormValues = z.infer<typeof setupSchema>;
 
 type ChatContext = {
   astrologyReading: InterpretAstrologicalChartOutput;
+  setupValues: SetupFormValues;
 };
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
   const [isSettingUp, setIsSettingUp] = useState(false);
   const [isSetupFormOpen, setIsSetupFormOpen] = useState(true);
@@ -47,6 +53,7 @@ export default function ChatPage() {
 
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<SetupFormValues>({
@@ -77,7 +84,7 @@ export default function ChatPage() {
         astrologySystem: 'Vedic (Sidereal)', // Defaulting for chat context
       });
       
-      setChatContext({ astrologyReading });
+      setChatContext({ astrologyReading, setupValues: values });
       setIsSetupComplete(true);
       setIsSetupFormOpen(false);
 
@@ -95,6 +102,43 @@ export default function ChatPage() {
       });
     } finally {
       setIsSettingUp(false);
+    }
+  };
+
+  const handleSaveChat = async () => {
+    if (!user || messages.length === 0 || !chatContext) {
+      toast({
+        title: 'Cannot Save',
+        description: 'You must be logged in and have an active chat to save.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await addDoc(collection(db, 'results'), {
+        userId: user.uid,
+        type: 'chat',
+        name: `Chat from ${format(new Date(), 'PPP p')}`,
+        data: {
+            messages,
+            context: chatContext.setupValues,
+        },
+        createdAt: serverTimestamp(),
+      });
+      toast({
+        title: 'Chat Saved!',
+        description: 'You can view this chat in your Results page.'
+      });
+    } catch (error) {
+      console.error('Error saving chat:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not save your chat session. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -225,6 +269,18 @@ export default function ChatPage() {
 
       {!isSetupComplete ? renderSetupForm() : (
           <Card className="flex-1 flex flex-col bg-card/50 backdrop-blur-sm">
+            <CardHeader className="p-4 border-b flex flex-row justify-between items-center">
+                <p className="font-semibold text-foreground">AI Astrologer</p>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSaveChat}
+                    disabled={isSaving || messages.length === 0}
+                >
+                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    Save Chat
+                </Button>
+            </CardHeader>
             <CardContent className="flex-1 p-0">
               <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
                 <div className="space-y-6">

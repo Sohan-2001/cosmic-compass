@@ -155,19 +155,18 @@ export const uiText = {
   "chat.birth_date_label": "Birth Date",
   "chat.birth_time_label": "Birth Time",
   "chat.birth_location_label": "Birth Location",
-  "chat.palm_image_label": "Palm Image (Optional)",
   "chat.start_chat_button": "Start Personalized Chat",
   "chat.analyzing_button": "Analyzing & Preparing Chat...",
   "chat.ready_toast": "Ready to Chat!",
   "chat.ready_toast_desc": "Your personal context has been loaded.",
   "chat.setup_error": "Could not analyze your information. Please try again.",
-  "chat.initial_message": "Your context is loaded. Ask me anything about your chart, palm, or the cosmos!",
+  "chat.initial_message": "Your context is loaded. Ask me anything about your chart, or the cosmos!",
   "chat.input_placeholder": "Type your message...",
   "chat.send_button_sr": "Send",
 
   // Results Page
   "results.title": "Your Saved Results",
-  "results.subtitle": "A history of all your past readings.",
+  "results.subtitle": "A history of all your past readings and chats.",
   "results.no_results_title": "No Results Yet",
   "results.no_results_subtitle": "You haven't performed any readings yet. Go explore the app to get started!",
   "results.delete_confirm_title": "Are you absolutely sure?",
@@ -179,6 +178,7 @@ export const uiText = {
   "results.type_astrology": "Astrology Reading",
   "results.type_palmistry": "Palmistry Reading",
   "results.type_face_reading": "Face Reading",
+  "results.type_chat": "Chat Session",
 
   // Login Page
   "login.welcome_back": "Welcome Back",
