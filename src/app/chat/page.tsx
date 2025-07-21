@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { contextualAiAstrologerChat } from '@/ai/flows/contextual-ai-astrologer-chat';
 import { interpretAstrologicalChart, type InterpretAstrologicalChartOutput } from '@/ai/flows/interpret-astrological-chart';
-import { analyzePalmImage, type AnalyzePalmImageOutput } from '@/ai/flows/analyze-palm-image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -18,7 +17,6 @@ import { Bot, Loader2, Send, Sparkles, User, ChevronDown, ChevronUp } from 'luci
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { PlacesAutocomplete } from '@/components/common/places-autocomplete';
-import { ImageUploader } from '@/components/common/image-uploader';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useTranslation } from '@/context/language-context';
 
@@ -31,13 +29,11 @@ const setupSchema = z.object({
   birthDate: z.string().min(1, 'Birth date is required'),
   birthTime: z.string().min(1, 'Birth time is required'),
   birthLocation: z.string().min(1, 'Birth location is required'),
-  palmImageDataUri: z.string().optional(),
 });
 type SetupFormValues = z.infer<typeof setupSchema>;
 
 type ChatContext = {
   astrologyReading: InterpretAstrologicalChartOutput;
-  palmReading?: AnalyzePalmImageOutput;
 };
 
 export default function ChatPage() {
@@ -59,7 +55,6 @@ export default function ChatPage() {
       birthDate: '',
       birthTime: '',
       birthLocation: '',
-      palmImageDataUri: undefined,
     },
   });
 
@@ -75,20 +70,14 @@ export default function ChatPage() {
   const handleSetupSubmit = async (values: SetupFormValues) => {
     setIsSettingUp(true);
     try {
-      const astrologyPromise = interpretAstrologicalChart({
+      const astrologyReading = await interpretAstrologicalChart({
         birthDate: values.birthDate,
         birthTime: values.birthTime,
         birthLocation: values.birthLocation,
         astrologySystem: 'Vedic (Sidereal)', // Defaulting for chat context
       });
-
-      const palmPromise = values.palmImageDataUri
-        ? analyzePalmImage({ palmImageDataUri: values.palmImageDataUri })
-        : Promise.resolve(undefined);
-
-      const [astrologyReading, palmReading] = await Promise.all([astrologyPromise, palmPromise]);
       
-      setChatContext({ astrologyReading, palmReading });
+      setChatContext({ astrologyReading });
       setIsSetupComplete(true);
       setIsSetupFormOpen(false);
 
@@ -128,7 +117,6 @@ export default function ChatPage() {
           message: input, 
           chatHistory,
           astrologyReading: chatContext.astrologyReading,
-          palmReading: chatContext.palmReading,
        });
       const assistantMessage: Message = { role: 'assistant', content: response };
       setMessages([...newMessages, assistantMessage]);
@@ -211,23 +199,6 @@ export default function ChatPage() {
                         </FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="palmImageDataUri"
-                    render={({ field }) => (
-                       <FormItem>
-                        <FormLabel>{t('chat.palm_image_label')}</FormLabel>
-                        <FormControl>
-                            <ImageUploader 
-                                onImageUpload={(uri) => form.setValue('palmImageDataUri', uri, { shouldValidate: true })}
-                                onImageClear={() => form.setValue('palmImageDataUri', undefined, { shouldValidate: true })}
-                                disabled={isSettingUp}
-                            />
-                        </FormControl>
-                        <FormMessage />
-                       </FormItem>
                     )}
                   />
                   <Button type="submit" disabled={isSettingUp} className="w-full">
