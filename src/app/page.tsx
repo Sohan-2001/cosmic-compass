@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { horoscopeSigns } from '@/data/horoscopes';
 import { ZodiacIcon } from '@/components/common/zodiac-icons';
 import { useTranslation } from '@/context/language-context';
+import Image from 'next/image';
 
 export default function Home() {
   const { t } = useTranslation();
@@ -18,6 +19,16 @@ export default function Home() {
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
           {t('home.subtitle')}
         </p>
+        <div className="relative w-full max-w-2xl mx-auto mt-8">
+            <Image
+                src="https://sxldi6vsg8pc7vjq.public.blob.vercel-storage.com/image.jpg"
+                alt="Mystical astrology collage"
+                width={800}
+                height={500}
+                className="rounded-lg shadow-xl"
+                priority
+            />
+        </div>
       </section>
 
       <section>
