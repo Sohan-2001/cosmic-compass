@@ -34,6 +34,25 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+const handleApiError = (error: any, toast: (options: any) => void) => {
+    console.error('API Error:', error);
+    const errorMessage = error.message || '';
+    if (errorMessage.includes('503') || errorMessage.includes('overloaded')) {
+        toast({
+            title: 'Server is busy',
+            description: 'The AI service is currently overloaded. Please try again in a moment.',
+            variant: 'destructive',
+        });
+    } else {
+        toast({
+            title: 'Error',
+            description: 'An unexpected error occurred. Please try again.',
+            variant: 'destructive',
+        });
+    }
+};
+
+
 export default function AstrologyPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -66,12 +85,7 @@ export default function AstrologyPage() {
       setDeterminedSign(zodiacSign);
       setStep('confirmation');
     } catch (error) {
-      console.error('Error determining zodiac sign:', error);
-      toast({
-        title: t('common.error'),
-        description: 'Could not determine zodiac sign. Please check the birth date or enter it manually.',
-        variant: 'destructive',
-      });
+      handleApiError(error, toast);
       setStep('correction');
     } finally {
       setIsLoading(false);
@@ -104,12 +118,7 @@ export default function AstrologyPage() {
         });
       }
     } catch (error) {
-      console.error('Error interpreting astrological chart:', error);
-      toast({
-        title: t('common.error'),
-        description: 'Failed to generate your astrological chart. Please try again.',
-        variant: 'destructive',
-      });
+      handleApiError(error, toast);
     } finally {
       setIsGenerating(false);
     }

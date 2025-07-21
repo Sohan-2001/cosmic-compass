@@ -16,6 +16,24 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { useTranslation } from '@/context/language-context';
 
+const handleApiError = (error: any, toast: (options: any) => void) => {
+    console.error('API Error:', error);
+    const errorMessage = error.message || '';
+    if (errorMessage.includes('503') || errorMessage.includes('overloaded')) {
+        toast({
+            title: 'Server is busy',
+            description: 'The AI service is currently overloaded. Please try again in a moment.',
+            variant: 'destructive',
+        });
+    } else {
+        toast({
+            title: 'Error',
+            description: 'An unexpected error occurred. Please try again.',
+            variant: 'destructive',
+        });
+    }
+};
+
 export default function FaceReadingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<InterpretFaceImageOutput | null>(null);
@@ -51,12 +69,7 @@ export default function FaceReadingPage() {
         });
       }
     } catch (error) {
-      console.error('Error analyzing face image:', error);
-      toast({
-        title: t('common.error'),
-        description: 'Failed to analyze the face. Please try again.',
-        variant: 'destructive',
-      });
+      handleApiError(error, toast);
     } finally {
       setIsLoading(false);
     }

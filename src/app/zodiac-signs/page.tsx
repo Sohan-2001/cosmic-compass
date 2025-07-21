@@ -30,6 +30,24 @@ type ZodiacDetailsWithTranslations = GetZodiacDetailsOutput & {
     translations?: Record<string, GetZodiacDetailsOutput>;
 };
 
+const handleApiError = (error: any, toast: (options: any) => void) => {
+    console.error('API Error:', error);
+    const errorMessage = error.message || '';
+    if (errorMessage.includes('503') || errorMessage.includes('overloaded')) {
+        toast({
+            title: 'Server is busy',
+            description: 'The AI service is currently overloaded. Please try again in a moment.',
+            variant: 'destructive',
+        });
+    } else {
+        toast({
+            title: 'Error',
+            description: 'An unexpected error occurred. Please try again.',
+            variant: 'destructive',
+        });
+    }
+};
+
 export default function ZodiacSignsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
@@ -70,12 +88,7 @@ export default function ZodiacSignsPage() {
         toast({ title: t('common.success'), description: t('zodiac.success_generated')});
       }
     } catch (error) {
-      console.error('Error handling sign selection:', error);
-      toast({
-        title: t('common.error'),
-        description: `Failed to get or generate details for ${sign}.`,
-        variant: 'destructive',
-      });
+        handleApiError(error, toast);
     } finally {
       setIsLoading(false);
     }
@@ -117,8 +130,7 @@ export default function ZodiacSignsPage() {
         setZodiacCache(prev => ({ ...prev, [selectedSign.id]: updatedSign }));
 
     } catch (error) {
-         console.error('Translation error:', error);
-         toast({ title: t('common.error'), description: 'Failed to translate.', variant: 'destructive' });
+         handleApiError(error, toast);
     } finally {
         setIsTranslating(false);
     }

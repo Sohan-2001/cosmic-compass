@@ -41,6 +41,24 @@ type ChatContext = {
   setupValues: SetupFormValues;
 };
 
+const handleApiError = (error: any, toast: (options: any) => void) => {
+    console.error('API Error:', error);
+    const errorMessage = error.message || '';
+    if (errorMessage.includes('503') || errorMessage.includes('overloaded')) {
+        toast({
+            title: 'Server is busy',
+            description: 'The AI service is currently overloaded. Please try again in a moment.',
+            variant: 'destructive',
+        });
+    } else {
+        toast({
+            title: 'Error',
+            description: 'An unexpected error occurred. Please try again.',
+            variant: 'destructive',
+        });
+    }
+};
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -94,12 +112,7 @@ export default function ChatPage() {
       });
 
     } catch (error) {
-      console.error('Setup error:', error);
-      toast({
-        title: t('common.error'),
-        description: t('chat.setup_error'),
-        variant: 'destructive',
-      });
+      handleApiError(error, toast);
     } finally {
       setIsSettingUp(false);
     }
@@ -164,22 +177,8 @@ export default function ChatPage() {
        });
       const assistantMessage: Message = { role: 'assistant', content: response };
       setMessages([...newMessages, assistantMessage]);
-    } catch (error: any) {
-        console.error('Chat error:', error);
-        const errorMessage = error.message || '';
-        if (errorMessage.includes('503')) {
-            toast({
-                title: 'Service Overloaded',
-                description: 'The AI astrologer is very popular right now. Please try again in a moment.',
-                variant: 'destructive',
-            });
-        } else {
-            toast({
-                title: t('common.error'),
-                description: 'Could not get a response. Please try again.',
-                variant: 'destructive',
-            });
-        }
+    } catch (error) {
+        handleApiError(error, toast);
         setMessages(messages); // Revert to previous messages state
     } finally {
       setIsLoading(false);

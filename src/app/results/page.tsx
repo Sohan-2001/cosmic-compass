@@ -34,6 +34,24 @@ type Result = DocumentData & {
     translations?: Record<string, any>;
 };
 
+const handleApiError = (error: any, toast: (options: any) => void) => {
+    console.error('API Error:', error);
+    const errorMessage = error.message || '';
+    if (errorMessage.includes('503') || errorMessage.includes('overloaded')) {
+        toast({
+            title: 'Server is busy',
+            description: 'The AI service is currently overloaded. Please try again in a moment.',
+            variant: 'destructive',
+        });
+    } else {
+        toast({
+            title: 'Error',
+            description: 'An unexpected error occurred. Please try again.',
+            variant: 'destructive',
+        });
+    }
+};
+
 export default function ResultsPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
@@ -155,12 +173,19 @@ export default function ResultsPage() {
         const currentResult = results.find(r => r.id === resultId);
         if (!selectedLanguage || selectedLanguage === 'English' || !currentResult) return;
 
-        // For chat, we translate each message content.
-        if (currentResult.type === 'chat') {
-            if (currentResult.translations?.[selectedLanguage]) return; // Already cached
-            
-            setTranslationState(prev => ({ ...prev, [resultId]: { ...prev[resultId], isTranslating: true } }));
-            try {
+        setTranslationState(prev => ({
+            ...prev,
+            [resultId]: { ...prev[resultId], isTranslating: true }
+        }));
+        
+        try {
+            // For chat, we translate each message content.
+            if (currentResult.type === 'chat') {
+                if (currentResult.translations?.[selectedLanguage]) { // Already cached
+                     setTranslationState(prev => ({ ...prev, [resultId]: { ...prev[resultId], isTranslating: false } }));
+                     return;
+                }
+                
                 const translatedMessages = await Promise.all(
                     currentResult.data.messages.map(async (message: any) => {
                          const { translatedObject } = await translateObject({ objectToTranslate: { content: message.content }, targetLanguage: selectedLanguage });
@@ -178,49 +203,29 @@ export default function ResultsPage() {
                         r.id === resultId ? { ...r, translations: { ...(r.translations || {}), [selectedLanguage]: translatedData } } : r
                     )
                 );
+            } else {
+                 if (currentResult.translations?.[selectedLanguage]) {
+                     setTranslationState(prev => ({ ...prev, [resultId]: { ...prev[resultId], isTranslating: false } }));
+                    return; // Already cached, do nothing.
+                }
 
-            } catch(e) {
-                console.error("Translation error:", e);
-                toast({ title: t('common.error'), description: "Failed to translate the result.", variant: "destructive" });
-            } finally {
-                setTranslationState(prev => ({ ...prev, [resultId]: { ...prev[resultId], isTranslating: false } }));
+                const { translatedObject } = await translateObject({ objectToTranslate: currentResult.data, targetLanguage: selectedLanguage });
+                
+                const resultDocRef = doc(db, 'results', resultId);
+                await updateDoc(resultDocRef, {
+                    [`translations.${selectedLanguage}`]: translatedObject,
+                });
+
+                setResults(prevResults =>
+                    prevResults.map(r =>
+                        r.id === resultId
+                            ? { ...r, translations: { ...(r.translations || {}), [selectedLanguage]: translatedObject } }
+                            : r
+                    )
+                );
             }
-            return;
-        }
-
-
-        if (currentResult.translations?.[selectedLanguage]) {
-            return; // Already cached, do nothing.
-        }
-
-        setTranslationState(prev => ({
-            ...prev,
-            [resultId]: { ...prev[resultId], isTranslating: true }
-        }));
-
-        try {
-            const { translatedObject } = await translateObject({ objectToTranslate: currentResult.data, targetLanguage: selectedLanguage });
-            
-            const resultDocRef = doc(db, 'results', resultId);
-            await updateDoc(resultDocRef, {
-                [`translations.${selectedLanguage}`]: translatedObject,
-            });
-
-            setResults(prevResults =>
-                prevResults.map(r =>
-                    r.id === resultId
-                        ? { ...r, translations: { ...(r.translations || {}), [selectedLanguage]: translatedObject } }
-                        : r
-                )
-            );
-            
         } catch (error) {
-            console.error("Translation error:", error);
-            toast({
-                title: t('common.error'),
-                description: "Failed to translate the result.",
-                variant: "destructive"
-            });
+            handleApiError(error, toast);
         } finally {
              setTranslationState(prev => ({
                 ...prev,
