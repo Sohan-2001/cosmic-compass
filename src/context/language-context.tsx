@@ -16,7 +16,7 @@ interface LanguageContextType {
   language: string;
   translations: Translations;
   setLanguage: (language: string) => Promise<void>;
-  t: (key: string, replacements?: Record<string, string | number>) => string;
+  t: (key: keyof Translations, replacements?: Record<string, string | number>) => string;
   isTranslating: boolean;
 }
 
@@ -30,29 +30,14 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [tempSelectedLanguage, setTempSelectedLanguage] = useState('English');
 
-  const t = useCallback((key: string, replacements?: Record<string, string | number>): string => {
-    const keys = key.split('.');
-    
-    const findValue = (obj: any, keyParts: string[]) => {
-      return keyParts.reduce((acc, currentKey) => {
-        return acc && acc[currentKey] !== undefined ? acc[currentKey] : undefined;
-      }, obj);
-    };
-
-    let translatedText = findValue(translations, keys);
-
-    if (translatedText === undefined) {
-      const fallbackText = findValue(englishText, keys);
-      translatedText = fallbackText || key;
-    }
-
+  const t = useCallback((key: keyof Translations, replacements?: Record<string, string | number>): string => {
+    let translatedText = translations[key] || englishText[key] || key;
     if (typeof translatedText === 'string' && replacements) {
       Object.entries(replacements).forEach(([keyToReplace, value]) => {
         translatedText = translatedText.replace(`{${keyToReplace}}`, String(value));
       });
     }
-
-    return translatedText;
+    return String(translatedText);
   }, [translations]);
 
   const setLanguage = useCallback(async (newLanguage: string) => {
