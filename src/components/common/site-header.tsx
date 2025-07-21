@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -17,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Bot, Hand, Home, Sparkles, User, Wand2, Star, LogIn, LogOut, Sun, Languages, Loader2, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 
 
 const MainNav = ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => {
@@ -82,6 +83,10 @@ const MobileNav = () => {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="pr-0">
+          <SheetHeader className="sr-only">
+             <SheetTitle>Menu</SheetTitle>
+             <SheetDescription>Main navigation menu for Astro AI, providing links to all pages.</SheetDescription>
+          </SheetHeader>
           <Link
             href="/"
             className="mr-6 flex items-center space-x-2"
