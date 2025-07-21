@@ -32,7 +32,7 @@ export default function RootLayout({
             <BackgroundStars />
             <div className="flex flex-col min-h-screen">
               <SiteHeader />
-              <main className="flex-1 p-4 md:p-8 z-10">
+              <main className="flex-1 px-4 md:px-8 z-10">
                 {children}
               </main>
             </div>
