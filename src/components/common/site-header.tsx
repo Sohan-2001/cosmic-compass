@@ -157,12 +157,26 @@ const MobileNav = () => {
                   </Link>
               ))}
                 <div className="pt-4">
-                  <Button asChild>
-                    <a href="https://razorpay.me/@sarmasol" target="_blank" rel="noopener noreferrer">
-                      <Coffee className="mr-2" />
-                      Buy me a coffee
-                    </a>
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button>
+                        <Coffee className="mr-2" />
+                        Buy me a coffee
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem asChild>
+                        <a href="https://razorpay.me/@sarmasol" target="_blank" rel="noopener noreferrer" className="cursor-pointer">
+                          Custom
+                        </a>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <a href="https://rzp.io/l/OpSJEXF" target="_blank" rel="noopener noreferrer" className="cursor-pointer">
+                          ₹51
+                        </a>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                </div>
             </div>
           </div>
@@ -208,12 +222,26 @@ export function SiteHeader() {
                 </Select>
             </div>
             <div className="hidden md:flex items-center gap-2">
-              <Button asChild>
-                <a href="https://razorpay.me/@sarmasol" target="_blank" rel="noopener noreferrer">
-                  <Coffee className="mr-2" />
-                  Buy me a coffee
-                </a>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button>
+                    <Coffee className="mr-2" />
+                    Buy me a coffee
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem asChild>
+                    <a href="https://razorpay.me/@sarmasol" target="_blank" rel="noopener noreferrer" className="cursor-pointer">
+                      Custom
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="https://rzp.io/l/OpSJEXF" target="_blank" rel="noopener noreferrer" className="cursor-pointer">
+                      ₹51
+                    </a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             {!loading && user && (
                <Link
