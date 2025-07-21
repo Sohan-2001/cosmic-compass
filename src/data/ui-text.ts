@@ -15,7 +15,7 @@ export const uiText = {
   "common.translate": "Translate",
 
   // Site Header / Sidebar
-  "sidebar.title": "Astro AI",
+  "sidebar.title": "Cosmic Compass",
   "sidebar.subtitle": "Cosmic Insights",
   "sidebar.home": "Home",
   "sidebar.ai_astrology": "AI Astrology",
@@ -26,10 +26,10 @@ export const uiText = {
   "sidebar.results": "Results",
   "sidebar.sign_in": "Sign In",
   "sidebar.sign_out": "Sign Out",
-  "sidebar.copyright": "© {year} Astro AI",
+  "sidebar.copyright": "© {year} Cosmic Compass",
 
   // Home Page
-  "home.title": "Astro AI",
+  "home.title": "Cosmic Compass",
   "home.subtitle": "Unlock the secrets of the cosmos. Explore your destiny with AI-powered astrology, palmistry, and face reading.",
   "home.daily_horoscopes": "Daily Horoscopes",
 

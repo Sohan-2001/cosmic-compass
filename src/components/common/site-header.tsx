@@ -85,7 +85,7 @@ const MobileNav = () => {
         <SheetContent side="left" className="pr-0">
           <SheetHeader className="sr-only">
              <SheetTitle>Menu</SheetTitle>
-             <SheetDescription>Main navigation menu for Astro AI, providing links to all pages.</SheetDescription>
+             <SheetDescription>Main navigation menu for Cosmic Compass, providing links to all pages.</SheetDescription>
           </SheetHeader>
           <Link
             href="/"

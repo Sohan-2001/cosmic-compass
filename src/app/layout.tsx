@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -9,7 +10,7 @@ import { LanguageProvider } from '@/context/language-context';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
-  title: 'Astro AI',
+  title: 'Cosmic Compass',
   description: 'AI Powered Astrology, Palmistry, and Face Reading',
 };
 
