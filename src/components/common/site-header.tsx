@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bot, Hand, Home, Sparkles, User, Wand2, Star, LogIn, LogOut, Sun, Languages, Loader2, Menu, ChevronDown } from 'lucide-react';
+import { Bot, Hand, Home, Sparkles, User, Wand2, Star, LogIn, LogOut, Sun, Languages, Loader2, Menu, ChevronDown, Coffee } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
@@ -129,9 +129,9 @@ const MobileNav = () => {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="pr-0">
-          <SheetHeader className="sr-only">
-             <SheetTitle>Menu</SheetTitle>
-             <SheetDescription>Main navigation menu for Cosmic Compass, providing links to all pages.</SheetDescription>
+          <SheetHeader>
+             <SheetTitle className="sr-only">Menu</SheetTitle>
+             <SheetDescription className="sr-only">Main navigation menu for Cosmic Compass, providing links to all pages.</SheetDescription>
           </SheetHeader>
           <Link
             href="/"
@@ -156,6 +156,14 @@ const MobileNav = () => {
                     {item.label}
                   </Link>
               ))}
+                <div className="pt-4">
+                  <Button asChild>
+                    <a href="https://razorpay.me/@sarmasol" target="_blank" rel="noopener noreferrer">
+                      <Coffee className="mr-2" />
+                      Buy me a coffee
+                    </a>
+                  </Button>
+               </div>
             </div>
           </div>
         </SheetContent>
@@ -186,7 +194,7 @@ export function SiteHeader() {
 
         <div className="flex flex-1 items-center justify-end space-x-2">
           <nav className="flex items-center">
-             <div className="flex items-center gap-2">
+             <div className="hidden md:flex items-center gap-2">
                 {isTranslating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4 text-muted-foreground" />}
                 <Select value={language} onValueChange={(value) => setLanguage(value)} disabled={isTranslating}>
                     <SelectTrigger className="w-[120px] h-9 border-0 bg-transparent shadow-none focus:ring-0 text-muted-foreground hover:text-primary">
@@ -198,6 +206,14 @@ export function SiteHeader() {
                         ))}
                     </SelectContent>
                 </Select>
+            </div>
+            <div className="hidden md:flex items-center gap-2">
+              <Button asChild>
+                <a href="https://razorpay.me/@sarmasol" target="_blank" rel="noopener noreferrer">
+                  <Coffee className="mr-2" />
+                  Buy me a coffee
+                </a>
+              </Button>
             </div>
             {!loading && user && (
                <Link
