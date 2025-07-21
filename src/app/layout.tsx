@@ -1,10 +1,7 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { SiteHeader } from '@/components/common/site-header';
-import { SidebarNav } from '@/components/common/sidebar-nav';
 import { Toaster } from '@/components/ui/toaster';
 import { BackgroundStars } from '@/components/common/background-stars';
 import { AuthProvider } from '@/context/auth-context';
@@ -32,19 +29,12 @@ export default function RootLayout({
         <AuthProvider>
           <LanguageProvider>
             <BackgroundStars />
-            <SidebarProvider>
-              <Sidebar collapsible="icon">
-                <SidebarNav />
-              </Sidebar>
-              <SidebarInset>
-                <div className="flex flex-col min-h-screen">
-                  <SiteHeader />
-                  <main className="flex-1 p-4 md:p-8 z-10">
-                    {children}
-                  </main>
-                </div>
-              </SidebarInset>
-            </SidebarProvider>
+            <div className="flex flex-col min-h-screen">
+              <SiteHeader />
+              <main className="flex-1 p-4 md:p-8 z-10">
+                {children}
+              </main>
+            </div>
             <Toaster />
           </LanguageProvider>
         </AuthProvider>
