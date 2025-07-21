@@ -19,13 +19,12 @@ export default function Home() {
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
           {t('home.subtitle')}
         </p>
-        <div className="relative w-full max-w-2xl mx-auto mt-8">
+        <div className="relative w-full aspect-[16/9] md:aspect-[16/7] mt-8">
             <Image
                 src="https://sxldi6vsg8pc7vjq.public.blob.vercel-storage.com/image.jpg"
                 alt="Mystical astrology collage"
-                width={800}
-                height={500}
-                className="rounded-lg shadow-xl"
+                fill
+                className="rounded-lg shadow-xl object-cover"
                 priority
             />
         </div>
