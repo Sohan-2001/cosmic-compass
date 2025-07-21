@@ -132,14 +132,23 @@ export default function ChatPage() {
        });
       const assistantMessage: Message = { role: 'assistant', content: response };
       setMessages([...newMessages, assistantMessage]);
-    } catch (error) {
-      console.error('Chat error:', error);
-      toast({
-        title: t('common.error'),
-        description: 'Could not get a response. Please try again.',
-        variant: 'destructive',
-      });
-      setMessages(messages);
+    } catch (error: any) {
+        console.error('Chat error:', error);
+        const errorMessage = error.message || '';
+        if (errorMessage.includes('503')) {
+            toast({
+                title: 'Service Overloaded',
+                description: 'The AI astrologer is very popular right now. Please try again in a moment.',
+                variant: 'destructive',
+            });
+        } else {
+            toast({
+                title: t('common.error'),
+                description: 'Could not get a response. Please try again.',
+                variant: 'destructive',
+            });
+        }
+        setMessages(messages); // Revert to previous messages state
     } finally {
       setIsLoading(false);
     }
