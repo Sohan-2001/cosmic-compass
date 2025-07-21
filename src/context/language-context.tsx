@@ -32,23 +32,27 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
 
   const t = useCallback((key: string, replacements?: Record<string, string | number>): string => {
     const keys = key.split('.');
-    let translation = keys.reduce((acc: any, currentKey: string) => {
-      return acc && acc[currentKey] !== undefined ? acc[currentKey] : undefined;
-    }, translations);
     
-    if (translation === undefined) {
-        let fallback = keys.reduce((acc: any, currentKey: string) => {
-            return acc && acc[currentKey] !== undefined ? acc[currentKey] : undefined;
-        }, englishText);
-        translation = fallback || key;
+    const findValue = (obj: any, keyParts: string[]) => {
+      return keyParts.reduce((acc, currentKey) => {
+        return acc && acc[currentKey] !== undefined ? acc[currentKey] : undefined;
+      }, obj);
+    };
+
+    let translatedText = findValue(translations, keys);
+
+    if (translatedText === undefined) {
+      const fallbackText = findValue(englishText, keys);
+      translatedText = fallbackText || key;
     }
 
-    if (replacements) {
+    if (typeof translatedText === 'string' && replacements) {
       Object.entries(replacements).forEach(([keyToReplace, value]) => {
-        translation = translation.replace(`{${keyToReplace}}`, String(value));
+        translatedText = translatedText.replace(`{${keyToReplace}}`, String(value));
       });
     }
-    return translation;
+
+    return translatedText;
   }, [translations]);
 
   const setLanguage = useCallback(async (newLanguage: string) => {
