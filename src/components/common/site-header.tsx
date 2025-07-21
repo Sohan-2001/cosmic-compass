@@ -15,15 +15,22 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bot, Hand, Home, Sparkles, User, Wand2, Star, LogIn, LogOut, Sun, Languages, Loader2, Menu } from 'lucide-react';
+import { Bot, Hand, Home, Sparkles, User, Wand2, Star, LogIn, LogOut, Sun, Languages, Loader2, Menu, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 const MainNav = ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => {
   const pathname = usePathname();
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const links = [
     { href: '/', label: t('sidebar.home'), icon: Home },
@@ -33,21 +40,60 @@ const MainNav = ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => 
     { href: '/zodiac-signs', label: t('sidebar.zodiac_signs'), icon: Sun },
     { href: '/chat', label: t('sidebar.ai_astrologer_chat'), icon: Bot },
   ];
+  
+  if (!isClient) {
+    return (
+        <nav className={cn('hidden md:flex items-center space-x-4 lg:space-x-6', className)} {...props}>
+         {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className='text-sm font-medium text-muted-foreground animate-pulse bg-muted/50 h-6 w-20 rounded-md'
+            />
+          ))}
+        </nav>
+    );
+  }
+
+  const visibleLinks = isMobile ? links.slice(0, 1) : links.slice(0, 3);
+  const hiddenLinks = isMobile ? links.slice(1) : links.slice(3);
+  
+  const renderLink = (link: { href: string; label: string }) => (
+     <Link
+        href={link.href}
+        className={cn(
+          'text-sm font-medium transition-colors hover:text-primary',
+          pathname === link.href ? 'text-primary' : 'text-muted-foreground'
+        )}
+      >
+        {link.label}
+      </Link>
+  );
 
   return (
     <nav className={cn('hidden md:flex items-center space-x-4 lg:space-x-6', className)} {...props}>
-      {links.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className={cn(
-            'text-sm font-medium transition-colors hover:text-primary',
-            pathname === link.href ? 'text-primary' : 'text-muted-foreground'
-          )}
-        >
-          {link.label}
-        </Link>
+      {visibleLinks.map((link) => (
+        <div key={link.href}>
+            {renderLink(link)}
+        </div>
       ))}
+      {hiddenLinks.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+               <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-primary p-0 h-auto">
+                More
+                <ChevronDown className="relative top-[1px] ml-1 h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+                 {hiddenLinks.map((link) => (
+                    <DropdownMenuItem key={link.href} asChild>
+                       {renderLink(link)}
+                    </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+      )}
     </nav>
   );
 };
