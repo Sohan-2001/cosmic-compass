@@ -63,7 +63,7 @@ You have been provided with the user's astrological chart analysis. You MUST use
 =================================
 
 {{#if chatHistory}}
-Here's the chat history:
+Here is the conversation history so far. Use it to understand the context of the user's message.
 {{#each chatHistory}}
 {{this.role}}: {{this.content}}
 {{/each}}
