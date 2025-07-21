@@ -166,13 +166,8 @@ export default function ChatPage() {
     setIsLoading(true);
 
     try {
-      const chatHistory = newMessages.slice(0, -1).map(m => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content
-      }));
       const { response } = await contextualAiAstrologerChat({ 
           message: input, 
-          chatHistory,
           astrologyReading: chatContext.astrologyReading,
        });
       const assistantMessage: Message = { role: 'assistant', content: response };

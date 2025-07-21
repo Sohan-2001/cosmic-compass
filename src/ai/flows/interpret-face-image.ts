@@ -41,19 +41,12 @@ const prompt = ai.definePrompt({
   name: 'interpretFaceImagePrompt',
   input: {schema: InterpretFaceImageInputSchema},
   output: {schema: InterpretFaceImageOutputSchema},
-  prompt: `You are an expert in face reading, capable of analyzing facial features to provide insights into a person's personality and fortune.
-
-Analyze the provided image and description to generate a face reading analysis.
+  prompt: `You are an expert in face reading. Analyze the provided image to provide insights into a person's personality and fortune.
 
 Description: {{{description}}}
 Photo: {{media url=photoDataUri}}
 
-Provide a summary of the analysis, insights into the person's personality traits, and predictions about their fortune.
-
-Output:
-Summary: A summary of the face reading analysis.
-Personality Insights: Insights into the personality traits based on facial features.
-Fortune Prediction: Predictions about the person's fortune.
+Provide a summary, personality insights, and a fortune prediction.
 `,
 });
 

@@ -40,20 +40,14 @@ const prompt = ai.definePrompt({
   name: 'interpretAstrologicalChartPrompt',
   input: {schema: InterpretAstrologicalChartInputSchema},
   output: {schema: InterpretAstrologicalChartOutputSchema},
-  prompt: `You are an expert astrologer. Your task is to provide a comprehensive interpretation of the user's astrological chart based on the provided birth details and the selected astrological system.
+  prompt: `You are an expert astrologer. Provide a comprehensive interpretation of an astrological chart based on the provided birth details and astrological system.
 
-  Astrological System to use: {{{astrologySystem}}}
-  
-  You must perform your analysis using the system specified above. Calculate the correct sun sign and other planetary positions based *only* on the birth date, time, location, and the chosen system. Take the birth location into account for accurate calculations.
+Astrological System: {{{astrologySystem}}}
+Birth Date: {{{birthDate}}}
+Birth Time: {{{birthTime}}}
+Birth Location: {{{birthLocation}}}
 
-  In addition, provide the following forecasts based on the principles of the selected system:
-  - A brief forecast for the next month.
-  - A brief forecast for the next three years.
-  - A prediction of any significant life events that may occur, including the probable timing.
-
-  Birth Date: {{{birthDate}}}
-  Birth Time: {{{birthTime}}}
-  Birth Location: {{{birthLocation}}}
+Provide forecasts for the next month, the next three years, and predict any significant life events.
   `,
 });
 
