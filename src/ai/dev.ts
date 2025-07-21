@@ -1,5 +1,3 @@
-import { config } from 'dotenv';
-config();
 
 import '@/ai/flows/interpret-astrological-chart.ts';
 import '@/ai/flows/analyze-palm-image.ts';
