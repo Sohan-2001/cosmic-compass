@@ -7,17 +7,19 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Bot, Hand, Home, Sparkles, User, Wand2, Star, LogIn, LogOut, Sun } from 'lucide-react';
+import { Bot, Hand, Home, Sparkles, User, Wand2, Star, LogIn, LogOut, Sun, Languages, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { auth } from '@/lib/firebase';
 import { useTranslation } from '@/context/language-context';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { languages } from '@/data/languages';
 
 export function SidebarNav() {
   const pathname = usePathname();
   const { user, loading } = useAuth();
-  const { t } = useTranslation();
+  const { t, language, setLanguage, isTranslating } = useTranslation();
 
   const handleSignOut = async () => {
     await auth.signOut();
@@ -81,7 +83,20 @@ export function SidebarNav() {
             </SidebarMenuItem>
         ))}
       </SidebarMenu>
-      <SidebarFooter className="mt-auto">
+      <SidebarFooter className="mt-auto space-y-2">
+         <div className="flex items-center gap-2 px-2">
+          {isTranslating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
+          <Select value={language} onValueChange={(value) => setLanguage(value)} disabled={isTranslating}>
+              <SelectTrigger className="w-full h-9 border-0 bg-transparent shadow-none hover:bg-accent hover:text-accent-foreground focus:ring-0">
+                  <SelectValue placeholder="Select Language" />
+              </SelectTrigger>
+              <SelectContent>
+                  {languages.map(lang => (
+                      <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>
+                  ))}
+              </SelectContent>
+          </Select>
+        </div>
         {!loading && (
             user ? (
                 <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleSignOut}>
@@ -97,7 +112,7 @@ export function SidebarNav() {
                 </Button>
             )
         )}
-        <p className="text-xs text-muted-foreground text-center mt-4">
+        <p className="text-xs text-muted-foreground text-center pt-2">
             {t('sidebar.copyright', { year: new Date().getFullYear() })}
         </p>
       </SidebarFooter>
