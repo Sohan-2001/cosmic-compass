@@ -1,5 +1,4 @@
 
-
 // src/data/ui-text.ts
 
 export const uiText = {
@@ -198,5 +197,11 @@ export const uiText = {
   // Image Uploader
   "uploader.click_to_upload": "Click to upload",
   "uploader.drag_and_drop": "or drag and drop",
-  "uploader.file_types": "PNG, JPG, or WEBP (max 4MB)"
+  "uploader.file_types": "PNG, JPG, or WEBP (max 4MB)",
+
+  // Development Banner
+  "banner.title": "Under Development",
+  "banner.description_p1": "This website is currently under active development. More features and improvements are on the way! Your feedback is appreciated. For the best experience and to help us manage server costs:",
+  "banner.description_li1": "Please use low-quality or compressed images for analysis.",
+  "banner.description_li2": "Sign in to save your results and avoid repeating readings."
 };

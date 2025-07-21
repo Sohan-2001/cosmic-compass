@@ -8,6 +8,7 @@ import { BackgroundStars } from '@/components/common/background-stars';
 import { AuthProvider } from '@/context/auth-context';
 import { LanguageProvider } from '@/context/language-context';
 import Script from 'next/script';
+import { DevelopmentBanner } from '@/components/common/development-banner';
 
 export const metadata: Metadata = {
   title: 'Cosmic Compass',
@@ -32,6 +33,7 @@ export default function RootLayout({
             <BackgroundStars />
             <div className="flex flex-col min-h-screen">
               <SiteHeader />
+              <DevelopmentBanner />
               <main className="flex-1 px-4 md:px-8 z-10">
                 {children}
               </main>
