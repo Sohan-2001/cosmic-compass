@@ -12,6 +12,7 @@ import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
+import { useTranslation } from '@/context/language-context';
 
 export default function PalmistryPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +20,7 @@ export default function PalmistryPage() {
   const [imageDataUri, setImageDataUri] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const handleAnalysis = async () => {
     if (!imageDataUri) {
@@ -40,7 +42,7 @@ export default function PalmistryPage() {
         await addDoc(collection(db, 'results'), {
           userId: user.uid,
           type: 'palmistry',
-          name: `Palmistry Reading from ${format(new Date(), 'PPP p')}`,
+          name: `${t('results.type_palmistry')} from ${format(new Date(), 'PPP p')}`,
           data: analysis,
           createdAt: serverTimestamp(),
         });
@@ -49,7 +51,7 @@ export default function PalmistryPage() {
     } catch (error) {
       console.error('Error analyzing palm image:', error);
       toast({
-        title: 'Error',
+        title: t('common.error'),
         description: 'Failed to analyze your palm. Please try again.',
         variant: 'destructive',
       });
@@ -66,13 +68,13 @@ export default function PalmistryPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-12">
-        <h1 className="font-headline text-5xl font-bold">AI Palmistry</h1>
-        <p className="text-muted-foreground mt-2">Upload a photo of your palm to discover what your hands reveal.</p>
+        <h1 className="font-headline text-5xl font-bold">{t('palmistry.title')}</h1>
+        <p className="text-muted-foreground mt-2">{t('palmistry.subtitle')}</p>
       </div>
 
       <Card className="mb-8 bg-card/50 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle>Upload Your Palm Image</CardTitle>
+          <CardTitle>{t('palmistry.upload_title')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <ImageUploader 
@@ -84,12 +86,12 @@ export default function PalmistryPage() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Analyzing...
+                {t('palmistry.analyzing')}
               </>
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4" />
-                Read My Palm
+                {t('palmistry.read_palm_button')}
               </>
             )}
           </Button>
@@ -98,10 +100,10 @@ export default function PalmistryPage() {
 
       {result && (
         <div className="space-y-6 animate-in fade-in-50">
-          <h2 className="font-headline text-4xl text-center">Your Palm Reading</h2>
+          <h2 className="font-headline text-4xl text-center">{t('palmistry.result_title')}</h2>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><BookOpen className="text-accent" /> Summary</CardTitle>
+              <CardTitle className="flex items-center gap-2"><BookOpen className="text-accent" /> {t('palmistry.summary')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground whitespace-pre-wrap">{result.summary}</p>
@@ -109,7 +111,7 @@ export default function PalmistryPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><LineChart className="text-accent" /> Life Line</CardTitle>
+              <CardTitle className="flex items-center gap-2"><LineChart className="text-accent" /> {t('palmistry.life_line')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground whitespace-pre-wrap">{result.lifeLine}</p>
@@ -117,7 +119,7 @@ export default function PalmistryPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Brain className="text-accent" /> Head Line</CardTitle>
+              <CardTitle className="flex items-center gap-2"><Brain className="text-accent" /> {t('palmistry.head_line')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground whitespace-pre-wrap">{result.headLine}</p>
@@ -125,7 +127,7 @@ export default function PalmistryPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Heart className="text-accent" /> Heart Line</CardTitle>
+              <CardTitle className="flex items-center gap-2"><Heart className="text-accent" /> {t('palmistry.heart_line')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground whitespace-pre-wrap">{result.heartLine}</p>
@@ -133,7 +135,7 @@ export default function PalmistryPage() {
           </Card>
            <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Hand className="text-accent" /> Fate Line</CardTitle>
+              <CardTitle className="flex items-center gap-2"><Hand className="text-accent" /> {t('palmistry.fate_line')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground whitespace-pre-wrap">{result.fateLine}</p>
@@ -141,7 +143,7 @@ export default function PalmistryPage() {
           </Card>
            <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Zap className="text-accent" /> Probable Big Events</CardTitle>
+              <CardTitle className="flex items-center gap-2"><Zap className="text-accent" /> {t('palmistry.probable_events')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground whitespace-pre-wrap">{result.probableEvents}</p>
@@ -149,7 +151,7 @@ export default function PalmistryPage() {
           </Card>
            <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><TrendingUp className="text-accent" /> Future Outlook</CardTitle>
+              <CardTitle className="flex items-center gap-2"><TrendingUp className="text-accent" /> {t('palmistry.future_outlook')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground whitespace-pre-wrap">{result.futureOutlook}</p>
@@ -157,7 +159,7 @@ export default function PalmistryPage() {
           </Card>
            <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-accent" /> Limitations</CardTitle>
+              <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-accent" /> {t('palmistry.limitations')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground whitespace-pre-wrap">{result.limitations}</p>

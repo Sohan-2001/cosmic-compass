@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PlacesAutocomplete } from '@/components/common/places-autocomplete';
 import { ImageUploader } from '@/components/common/image-uploader';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useTranslation } from '@/context/language-context';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -49,6 +50,7 @@ export default function ChatPage() {
   const [chatContext, setChatContext] = useState<ChatContext | null>(null);
 
   const { toast } = useToast();
+  const { t } = useTranslation();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<SetupFormValues>({
@@ -91,15 +93,15 @@ export default function ChatPage() {
       setIsSetupFormOpen(false);
 
       toast({
-        title: 'Ready to Chat!',
-        description: 'Your personal context has been loaded.',
+        title: t('chat.ready_toast'),
+        description: t('chat.ready_toast_desc'),
       });
 
     } catch (error) {
       console.error('Setup error:', error);
       toast({
-        title: 'Setup Error',
-        description: 'Could not analyze your information. Please try again.',
+        title: t('common.error'),
+        description: t('chat.setup_error'),
         variant: 'destructive',
       });
     } finally {
@@ -133,7 +135,7 @@ export default function ChatPage() {
     } catch (error) {
       console.error('Chat error:', error);
       toast({
-        title: 'Error',
+        title: t('common.error'),
         description: 'Could not get a response. Please try again.',
         variant: 'destructive',
       });
@@ -149,8 +151,8 @@ export default function ChatPage() {
         <CollapsibleTrigger asChild>
             <div className='flex justify-between items-center p-6 cursor-pointer'>
                 <div>
-                    <CardTitle>Personalize Your Chat</CardTitle>
-                    <CardDescription>Provide your details for a more accurate conversation.</CardDescription>
+                    <CardTitle>{t('chat.setup_title')}</CardTitle>
+                    <CardDescription>{t('chat.setup_subtitle')}</CardDescription>
                 </div>
                  <Button variant="ghost" size="sm">
                     {isSetupFormOpen ? <ChevronUp /> : <ChevronDown />}
@@ -168,7 +170,7 @@ export default function ChatPage() {
                       name="birthDate"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Birth Date</FormLabel>
+                          <FormLabel>{t('chat.birth_date_label')}</FormLabel>
                           <FormControl><Input type="date" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
@@ -179,7 +181,7 @@ export default function ChatPage() {
                       name="birthTime"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Birth Time</FormLabel>
+                          <FormLabel>{t('chat.birth_time_label')}</FormLabel>
                           <FormControl><Input type="time" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
@@ -191,7 +193,7 @@ export default function ChatPage() {
                     name="birthLocation"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Birth Location</FormLabel>
+                        <FormLabel>{t('chat.birth_location_label')}</FormLabel>
                         <FormControl>
                           <PlacesAutocomplete
                             onLocationSelect={(location) => form.setValue('birthLocation', location, { shouldValidate: true })}
@@ -207,7 +209,7 @@ export default function ChatPage() {
                     name="palmImageDataUri"
                     render={({ field }) => (
                        <FormItem>
-                        <FormLabel>Palm Image (Optional)</FormLabel>
+                        <FormLabel>{t('chat.palm_image_label')}</FormLabel>
                         <FormControl>
                             <ImageUploader 
                                 onImageUpload={(uri) => form.setValue('palmImageDataUri', uri, { shouldValidate: true })}
@@ -221,9 +223,9 @@ export default function ChatPage() {
                   />
                   <Button type="submit" disabled={isSettingUp} className="w-full">
                     {isSettingUp ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Analyzing & Preparing Chat...</>
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('chat.analyzing_button')}</>
                     ) : (
-                      <><Sparkles className="mr-2 h-4 w-4" />Start Personalized Chat</>
+                      <><Sparkles className="mr-2 h-4 w-4" />{t('chat.start_chat_button')}</>
                     )}
                   </Button>
                 </form>
@@ -237,8 +239,8 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-10rem)] max-w-4xl mx-auto">
       <div className="text-center mb-8">
-        <h1 className="font-headline text-5xl font-bold">AI Astrologer Chat</h1>
-        <p className="text-muted-foreground mt-2">Your personal cosmic conversation awaits.</p>
+        <h1 className="font-headline text-5xl font-bold">{t('chat.title')}</h1>
+        <p className="text-muted-foreground mt-2">{t('chat.subtitle')}</p>
       </div>
 
       {!isSetupComplete ? renderSetupForm() : (
@@ -249,7 +251,7 @@ export default function ChatPage() {
                   {messages.length === 0 && (
                     <div className="text-center text-muted-foreground py-8">
                       <Sparkles className="mx-auto h-12 w-12 mb-4 text-accent" />
-                      <p>Your context is loaded. Ask me anything about your chart, palm, or the cosmos!</p>
+                      <p>{t('chat.initial_message')}</p>
                     </div>
                   )}
                   {messages.map((message, index) => (
@@ -281,12 +283,12 @@ export default function ChatPage() {
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type your message..."
+                  placeholder={t('chat.input_placeholder')}
                   disabled={isLoading || !isSetupComplete}
                 />
                 <Button type="submit" disabled={isLoading || !input.trim() || !isSetupComplete}>
                   <Send className="h-4 w-4" />
-                  <span className="sr-only">Send</span>
+                  <span className="sr-only">{t('chat.send_button_sr')}</span>
                 </Button>
               </form>
             </CardFooter>

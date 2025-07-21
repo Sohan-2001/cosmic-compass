@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -7,6 +8,7 @@ import { SidebarNav } from '@/components/common/sidebar-nav';
 import { Toaster } from '@/components/ui/toaster';
 import { BackgroundStars } from '@/components/common/background-stars';
 import { AuthProvider } from '@/context/auth-context';
+import { LanguageProvider } from '@/context/language-context';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
@@ -28,21 +30,23 @@ export default function RootLayout({
       </head>
       <body className={cn('font-body antialiased relative')}>
         <AuthProvider>
-          <BackgroundStars />
-          <SidebarProvider>
-            <Sidebar collapsible="icon">
-              <SidebarNav />
-            </Sidebar>
-            <SidebarInset>
-              <div className="flex flex-col min-h-screen">
-                <SiteHeader />
-                <main className="flex-1 p-4 md:p-8 z-10">
-                  {children}
-                </main>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
-          <Toaster />
+          <LanguageProvider>
+            <BackgroundStars />
+            <SidebarProvider>
+              <Sidebar collapsible="icon">
+                <SidebarNav />
+              </Sidebar>
+              <SidebarInset>
+                <div className="flex flex-col min-h-screen">
+                  <SiteHeader />
+                  <main className="flex-1 p-4 md:p-8 z-10">
+                    {children}
+                  </main>
+                </div>
+              </SidebarInset>
+            </SidebarProvider>
+            <Toaster />
+          </LanguageProvider>
         </AuthProvider>
         <Script
           src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}

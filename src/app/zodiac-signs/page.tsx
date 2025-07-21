@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { getZodiacDetails, type GetZodiacDetailsOutput } from '@/ai/flows/get-zodiac-details';
 import { translateObject } from '@/ai/flows/translate-text';
 import { horoscopes } from '@/data/horoscopes';
@@ -15,6 +15,8 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { useTranslation } from '@/context/language-context';
+import { languages as allLanguages } from '@/data/languages';
 
 const elementIcons = {
     Fire: <Sun className="h-4 w-4" />,
@@ -28,29 +30,6 @@ type ZodiacDetailsWithTranslations = GetZodiacDetailsOutput & {
     translations?: Record<string, GetZodiacDetailsOutput>;
 };
 
-const languages = [
-    { value: 'English', label: 'English' },
-    { value: 'Spanish', label: 'Spanish' },
-    { value: 'French', label: 'French' },
-    { value: 'German', label: 'German' },
-    { value: 'Japanese', label: 'Japanese' },
-    { value: 'Chinese (Simplified)', label: 'Chinese (Simplified)' },
-    { value: 'Russian', label: 'Russian' },
-    { value: 'Arabic', label: 'Arabic' },
-    { value: 'Hindi', label: 'Hindi' },
-    { value: 'Bengali', label: 'Bengali' },
-    { value: 'Marathi', label: 'Marathi' },
-    { value: 'Telugu', label: 'Telugu' },
-    { value: 'Tamil', label: 'Tamil' },
-    { value: 'Gujarati', label: 'Gujarati' },
-    { value: 'Urdu', label: 'Urdu' },
-    { value: 'Kannada', label: 'Kannada' },
-    { value: 'Odia', label: 'Odia' },
-    { value: 'Malayalam', label: 'Malayalam' },
-    { value: 'Punjabi', label: 'Punjabi' },
-    { value: 'Assamese', label: 'Assamese' },
-];
-
 export default function ZodiacSignsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
@@ -58,13 +37,13 @@ export default function ZodiacSignsPage() {
   const [selectedSign, setSelectedSign] = useState<ZodiacDetailsWithTranslations | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState('English');
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleSignSelect = async (sign: string) => {
     setSelectedSign(null);
     setIsLoading(true);
     setSelectedLanguage('English');
 
-    // 1. Check client-side cache first
     if (zodiacCache[sign]) {
       setSelectedSign(zodiacCache[sign]);
       setIsLoading(false);
@@ -72,7 +51,6 @@ export default function ZodiacSignsPage() {
     }
 
     try {
-      // 2. Check Firestore
       const docRef = doc(db, 'zodiac_signs', sign);
       const docSnap = await getDoc(docRef);
 
@@ -81,22 +59,20 @@ export default function ZodiacSignsPage() {
         setSelectedSign(signData);
         setZodiacCache(prev => ({ ...prev, [sign]: signData }));
       } else {
-        // 3. Data not found, call AI
-        toast({ title: 'Fetching new data...', description: 'Please wait while we generate the profile for ' + sign });
+        toast({ title: t('zodiac.fetching_new_data'), description: t('zodiac.generating_profile', { sign }) });
         const details = await getZodiacDetails({ sign });
         const newSignData: ZodiacDetailsWithTranslations = { ...details, id: sign, translations: {} };
         
-        // 4. Save to Firestore
         await setDoc(docRef, newSignData);
         
         setSelectedSign(newSignData);
         setZodiacCache(prev => ({ ...prev, [sign]: newSignData }));
-        toast({ title: 'Success!', description: 'Zodiac profile generated and saved.'});
+        toast({ title: t('common.success'), description: t('zodiac.success_generated')});
       }
     } catch (error) {
       console.error('Error handling sign selection:', error);
       toast({
-        title: 'Error',
+        title: t('common.error'),
         description: `Failed to get or generate details for ${sign}.`,
         variant: 'destructive',
       });
@@ -111,29 +87,25 @@ export default function ZodiacSignsPage() {
         return;
     }
     
-    // Check if translation is already cached
     if (selectedSign.translations?.[language]) {
-        return; // Already have it, no need to fetch
+        return;
     }
 
     setIsTranslating(true);
     try {
         const { translations, id, ...originalData } = selectedSign;
 
-        // Call the new batch translation flow
         const { translatedObject } = await translateObject({
             objectToTranslate: originalData,
             targetLanguage: language
         });
         const translatedData = translatedObject as GetZodiacDetailsOutput;
 
-        // Update firestore with the new translation
         const docRef = doc(db, 'zodiac_signs', selectedSign.id);
         await updateDoc(docRef, {
             [`translations.${language}`]: translatedData
         });
 
-        // Update local state
         const updatedSign = {
             ...selectedSign,
             translations: {
@@ -146,7 +118,7 @@ export default function ZodiacSignsPage() {
 
     } catch (error) {
          console.error('Translation error:', error);
-         toast({ title: 'Error', description: 'Failed to translate.', variant: 'destructive' });
+         toast({ title: t('common.error'), description: 'Failed to translate.', variant: 'destructive' });
     } finally {
         setIsTranslating(false);
     }
@@ -165,8 +137,8 @@ export default function ZodiacSignsPage() {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="text-center mb-12">
-        <h1 className="font-headline text-5xl font-bold">Explore the Zodiac Signs</h1>
-        <p className="text-muted-foreground mt-2">Select a sign to uncover its detailed astrological profile.</p>
+        <h1 className="font-headline text-5xl font-bold">{t('zodiac.title')}</h1>
+        <p className="text-muted-foreground mt-2">{t('zodiac.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-12">
@@ -187,7 +159,7 @@ export default function ZodiacSignsPage() {
       {isLoading && (
         <div className="flex justify-center items-center py-16">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="ml-4 text-lg">Loading Zodiac Profile...</p>
+          <p className="ml-4 text-lg">{t('zodiac.loading_profile')}</p>
         </div>
       )}
 
@@ -212,28 +184,28 @@ export default function ZodiacSignsPage() {
             <Separator />
             <div className="grid md:grid-cols-2 gap-8">
               <Card>
-                  <CardHeader><CardTitle className="flex items-center gap-2"><Shield /> Strengths</CardTitle></CardHeader>
+                  <CardHeader><CardTitle className="flex items-center gap-2"><Shield /> {t('zodiac.strengths')}</CardTitle></CardHeader>
                   <CardContent className="flex flex-wrap gap-2">
                       {displayData.strengths.map(s => <Badge key={s}>{s}</Badge>)}
                   </CardContent>
               </Card>
               <Card>
-                  <CardHeader><CardTitle className="flex items-center gap-2"><Bone /> Weaknesses</CardTitle></CardHeader>
+                  <CardHeader><CardTitle className="flex items-center gap-2"><Bone /> {t('zodiac.weaknesses')}</CardTitle></CardHeader>
                   <CardContent className="flex flex-wrap gap-2">
                       {displayData.weaknesses.map(w => <Badge variant="destructive" key={w}>{w}</Badge>)}
                   </CardContent>
               </Card>
             </div>
             <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2"><Star /> Personality</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="flex items-center gap-2"><Star /> {t('zodiac.personality')}</CardTitle></CardHeader>
               <CardContent><p className="text-muted-foreground whitespace-pre-wrap">{displayData.personality}</p></CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2"><Heart /> Love & Relationships</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="flex items-center gap-2"><Heart /> {t('zodiac.love_and_relationships')}</CardTitle></CardHeader>
               <CardContent><p className="text-muted-foreground whitespace-pre-wrap">{displayData.loveAndRelationships}</p></CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2"><Briefcase /> Career & Work</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="flex items-center gap-2"><Briefcase /> {t('zodiac.career_and_work')}</CardTitle></CardHeader>
               <CardContent><p className="text-muted-foreground whitespace-pre-wrap">{displayData.career}</p></CardContent>
             </Card>
           </CardContent>
@@ -242,10 +214,10 @@ export default function ZodiacSignsPage() {
              <div className="flex items-center gap-2 pt-2">
                 <Select onValueChange={handleLanguageChange} value={selectedLanguage}>
                     <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select Language" />
+                        <SelectValue placeholder={t('zodiac.select_language')} />
                     </SelectTrigger>
                     <SelectContent>
-                        {languages.map(lang => (
+                        {allLanguages.map(lang => (
                             <SelectItem 
                                 key={lang.value} 
                                 value={lang.value}
@@ -258,11 +230,11 @@ export default function ZodiacSignsPage() {
                  {isTranslating ? (
                     <div className="flex items-center text-sm text-muted-foreground">
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Translating...
+                        {t('zodiac.translating')}
                     </div>
                  ) : (
                     <p className="text-sm text-muted-foreground">
-                        Available in {Object.keys(selectedSign.translations || {}).length + 1} languages.
+                        {t('zodiac.languages_available', {count: Object.keys(selectedSign.translations || {}).length + 1})}
                     </p>
                  )}
             </div>
@@ -273,7 +245,7 @@ export default function ZodiacSignsPage() {
       {!selectedSign && !isLoading && (
         <div className="text-center text-muted-foreground py-16">
             <Sparkles className="mx-auto h-12 w-12 mb-4 text-accent" />
-            <p className="text-lg">Select a zodiac sign above to see its cosmic details.</p>
+            <p className="text-lg">{t('zodiac.select_prompt')}</p>
         </div>
       )}
     </div>

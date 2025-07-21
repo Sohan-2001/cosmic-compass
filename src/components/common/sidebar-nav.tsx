@@ -1,38 +1,40 @@
+
 'use client';
 import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuButton,
   SidebarFooter,
 } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 import { Bot, Hand, Home, Sparkles, User, Wand2, Star, LogIn, LogOut, Sun } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Button } from '../ui/button';
 import { useAuth } from '@/context/auth-context';
 import { auth } from '@/lib/firebase';
-
-const links = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/astrology', label: 'AI Astrology', icon: Sparkles },
-  { href: '/palmistry', label: 'AI Palmistry', icon: Hand },
-  { href: '/face-reading', label: 'AI Face Reading', icon: User },
-  { href: '/zodiac-signs', label: 'Zodiac Signs', icon: Sun },
-  { href: '/chat', label: 'AI Astrologer Chat', icon: Bot },
-];
-
-const authenticatedLinks = [
-    { href: '/results', label: 'Results', icon: Star },
-];
+import { useTranslation } from '@/context/language-context';
 
 export function SidebarNav() {
   const pathname = usePathname();
   const { user, loading } = useAuth();
+  const { t } = useTranslation();
 
   const handleSignOut = async () => {
     await auth.signOut();
   };
+  
+  const links = [
+    { href: '/', label: t('sidebar.home'), icon: Home },
+    { href: '/astrology', label: t('sidebar.ai_astrology'), icon: Sparkles },
+    { href: '/palmistry', label: t('sidebar.ai_palmistry'), icon: Hand },
+    { href: '/face-reading', label: t('sidebar.ai_face_reading'), icon: User },
+    { href: '/zodiac-signs', label: t('sidebar.zodiac_signs'), icon: Sun },
+    { href: '/chat', label: t('sidebar.ai_astrologer_chat'), icon: Bot },
+  ];
+
+  const authenticatedLinks = [
+      { href: '/results', label: t('sidebar.results'), icon: Star },
+  ];
 
   return (
     <>
@@ -44,8 +46,8 @@ export function SidebarNav() {
                 </Link>
             </Button>
             <div className="flex flex-col">
-                 <h2 className="text-lg font-semibold font-headline tracking-tighter">Astro AI</h2>
-                 <p className="text-xs text-muted-foreground -mt-1">Cosmic Insights</p>
+                 <h2 className="text-lg font-semibold font-headline tracking-tighter">{t('sidebar.title')}</h2>
+                 <p className="text-xs text-muted-foreground -mt-1">{t('sidebar.subtitle')}</p>
             </div>
         </div>
       </SidebarHeader>
@@ -84,19 +86,19 @@ export function SidebarNav() {
             user ? (
                 <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleSignOut}>
                     <LogOut className="h-4 w-4" />
-                    <span>Sign Out</span>
+                    <span>{t('sidebar.sign_out')}</span>
                 </Button>
             ) : (
                 <Button variant="ghost" className="w-full justify-start gap-2" asChild>
                     <Link href="/login">
                         <LogIn className="h-4 w-4" />
-                        <span>Sign In</span>
+                        <span>{t('sidebar.sign_in')}</span>
                     </Link>
                 </Button>
             )
         )}
         <p className="text-xs text-muted-foreground text-center mt-4">
-            &copy; {new Date().getFullYear()} Astro AI
+            {t('sidebar.copyright', { year: new Date().getFullYear() })}
         </p>
       </SidebarFooter>
     </>

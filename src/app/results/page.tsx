@@ -18,6 +18,8 @@ import { translateObject } from '@/ai/flows/translate-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/context/language-context';
+import { languages as allLanguages } from '@/data/languages';
 
 type Result = DocumentData & {
     id: string;
@@ -28,29 +30,6 @@ type Result = DocumentData & {
     };
     translations?: Record<string, any>;
 };
-
-const languages = [
-    { value: 'English', label: 'English' },
-    { value: 'Spanish', label: 'Spanish' },
-    { value: 'French', label: 'French' },
-    { value: 'German', label: 'German' },
-    { value: 'Japanese', label: 'Japanese' },
-    { value: 'Chinese (Simplified)', label: 'Chinese (Simplified)' },
-    { value: 'Russian', label: 'Russian' },
-    { value: 'Arabic', label: 'Arabic' },
-    { value: 'Hindi', label: 'Hindi' },
-    { value: 'Bengali', label: 'Bengali' },
-    { value: 'Marathi', label: 'Marathi' },
-    { value: 'Telugu', label: 'Telugu' },
-    { value: 'Tamil', label: 'Tamil' },
-    { value: 'Gujarati', label: 'Gujarati' },
-    { value: 'Urdu', label: 'Urdu' },
-    { value: 'Kannada', label: 'Kannada' },
-    { value: 'Odia', label: 'Odia' },
-    { value: 'Malayalam', label: 'Malayalam' },
-    { value: 'Punjabi', label: 'Punjabi' },
-    { value: 'Assamese', label: 'Assamese' },
-];
 
 export default function ResultsPage() {
     const { user, loading } = useAuth();
@@ -66,6 +45,7 @@ export default function ResultsPage() {
         selectedLanguage: string;
     }>>({});
     const { toast } = useToast();
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (loading) return;
@@ -94,7 +74,7 @@ export default function ResultsPage() {
             } catch (error) {
                 console.error("Error fetching results:", error);
                 toast({
-                    title: "Error",
+                    title: t('common.error'),
                     description: "Could not fetch your saved results.",
                     variant: "destructive"
                 });
@@ -104,7 +84,7 @@ export default function ResultsPage() {
         };
 
         fetchResults();
-    }, [user, loading, router, toast]);
+    }, [user, loading, router, toast, t]);
 
     const handleDelete = async () => {
         if (!resultToDelete) return;
@@ -113,13 +93,13 @@ export default function ResultsPage() {
             await deleteDoc(doc(db, 'results', resultToDelete.id));
             setResults(results.filter(r => r.id !== resultToDelete.id));
             toast({
-                title: "Success",
-                description: "Result deleted successfully.",
+                title: t('common.success'),
+                description: t('results.deleted_toast'),
             });
         } catch (error) {
             console.error("Error deleting result:", error);
             toast({
-                title: "Error",
+                title: t('common.error'),
                 description: "Could not delete the result. Please try again.",
                 variant: "destructive"
             });
@@ -130,7 +110,10 @@ export default function ResultsPage() {
     
     const openRenameDialog = (result: Result) => {
         setResultToRename(result);
-        setNewName(result.name || `My ${result.type.replace('-', ' ')} Reading`);
+        const defaultName = result.type === 'astrology' ? t('results.type_astrology') :
+                            result.type === 'palmistry' ? t('results.type_palmistry') :
+                            t('results.type_face_reading');
+        setNewName(result.name || `${defaultName}`);
     };
 
     const handleRename = async () => {
@@ -145,15 +128,15 @@ export default function ResultsPage() {
 
             setResults(results.map(r => r.id === resultToRename.id ? { ...r, name: newName.trim() } : r));
             toast({
-                title: "Success",
-                description: "Result renamed successfully.",
+                title: t('common.success'),
+                description: t('results.renamed_toast'),
             });
             setResultToRename(null);
             setNewName('');
         } catch (error) {
             console.error("Error renaming result:", error);
             toast({
-                title: "Error",
+                title: t('common.error'),
                 description: "Could not rename the result. Please try again.",
                 variant: "destructive"
             });
@@ -195,7 +178,7 @@ export default function ResultsPage() {
         } catch (error) {
             console.error("Translation error:", error);
             toast({
-                title: "Error",
+                title: t('common.error'),
                 description: "Failed to translate the result.",
                 variant: "destructive"
             });
@@ -222,33 +205,33 @@ export default function ResultsPage() {
             case 'astrology':
                 return (
                     <div className="space-y-2">
-                        <p><strong>Personality Traits:</strong> {data.personalityTraits}</p>
-                        <p><strong>Life Tendencies:</strong> {data.lifeTendencies}</p>
-                        <p><strong>Key Insights:</strong> {data.keyInsights}</p>
-                        {data.nextMonthForecast && <p><strong>Next Month Forecast:</strong> {data.nextMonthForecast}</p>}
-                        {data.nextThreeYearsForecast && <p><strong>Next 3 Years Forecast:</strong> {data.nextThreeYearsForecast}</p>}
-                        {data.significantEvents && <p><strong>Significant Events:</strong> {data.significantEvents}</p>}
+                        <p><strong>{t('astrology.personality_traits')}:</strong> {data.personalityTraits}</p>
+                        <p><strong>{t('astrology.life_tendencies')}:</strong> {data.lifeTendencies}</p>
+                        <p><strong>{t('astrology.key_insights')}:</strong> {data.keyInsights}</p>
+                        {data.nextMonthForecast && <p><strong>{t('astrology.next_month_forecast')}:</strong> {data.nextMonthForecast}</p>}
+                        {data.nextThreeYearsForecast && <p><strong>{t('astrology.next_3_years_forecast')}:</strong> {data.nextThreeYearsForecast}</p>}
+                        {data.significantEvents && <p><strong>{t('astrology.significant_events')}:</strong> {data.significantEvents}</p>}
                     </div>
                 );
             case 'palmistry':
                 return (
                     <div className="space-y-2">
-                        <p><strong>Summary:</strong> {data.summary}</p>
-                        <p><strong>Life Line:</strong> {data.lifeLine}</p>
-                        <p><strong>Head Line:</strong> {data.headLine}</p>
-                        <p><strong>Heart Line:</strong> {data.heartLine}</p>
-                        <p><strong>Fate Line:</strong> {data.fateLine}</p>
-                        {data.probableEvents && <p><strong>Probable Events:</strong> {data.probableEvents}</p>}
-                        {data.futureOutlook && <p><strong>Future Outlook:</strong> {data.futureOutlook}</p>}
-                        {data.limitations && <p><strong>Limitations:</strong> {data.limitations}</p>}
+                        <p><strong>{t('palmistry.summary')}:</strong> {data.summary}</p>
+                        <p><strong>{t('palmistry.life_line')}:</strong> {data.lifeLine}</p>
+                        <p><strong>{t('palmistry.head_line')}:</strong> {data.headLine}</p>
+                        <p><strong>{t('palmistry.heart_line')}:</strong> {data.heartLine}</p>
+                        <p><strong>{t('palmistry.fate_line')}:</strong> {data.fateLine}</p>
+                        {data.probableEvents && <p><strong>{t('palmistry.probable_events')}:</strong> {data.probableEvents}</p>}
+                        {data.futureOutlook && <p><strong>{t('palmistry.future_outlook')}:</strong> {data.futureOutlook}</p>}
+                        {data.limitations && <p><strong>{t('palmistry.limitations')}:</strong> {data.limitations}</p>}
                     </div>
                 );
             case 'face-reading':
                 return (
                     <div className="space-y-2">
-                        <p><strong>Summary:</strong> {data.summary}</p>
-                        <p><strong>Personality Insights:</strong> {data.personalityInsights}</p>
-                        <p><strong>Fortune Prediction:</strong> {data.fortunePrediction}</p>
+                        <p><strong>{t('face_reading.summary')}:</strong> {data.summary}</p>
+                        <p><strong>{t('face_reading.personality_insights')}:</strong> {data.personalityInsights}</p>
+                        <p><strong>{t('face_reading.fortune_prediction')}:</strong> {data.fortunePrediction}</p>
                     </div>
                 );
             default:
@@ -269,6 +252,14 @@ export default function ResultsPage() {
         }
     };
 
+    const getResultTypeName = (type: string) => {
+        switch (type) {
+            case 'astrology': return t('results.type_astrology');
+            case 'palmistry': return t('results.type_palmistry');
+            case 'face-reading': return t('results.type_face_reading');
+            default: return 'Reading';
+        }
+    };
 
     if (loading || isLoadingResults) {
         return (
@@ -281,8 +272,8 @@ export default function ResultsPage() {
     return (
         <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
-                <h1 className="font-headline text-5xl font-bold">Your Saved Results</h1>
-                <p className="text-muted-foreground mt-2">A history of all your past readings.</p>
+                <h1 className="font-headline text-5xl font-bold">{t('results.title')}</h1>
+                <p className="text-muted-foreground mt-2">{t('results.subtitle')}</p>
             </div>
 
             {results.length > 0 ? (
@@ -292,7 +283,7 @@ export default function ResultsPage() {
                            <AccordionTrigger className="text-lg w-full font-medium hover:no-underline p-4">
                                 <div className="flex items-center gap-4 flex-1">
                                     {getIcon(result.type)}
-                                    <span className="capitalize text-left truncate">{result.name || `${result.type.replace('-', ' ')} Reading`}</span>
+                                    <span className="capitalize text-left truncate">{result.name || `${getResultTypeName(result.type)}`}</span>
                                     <span className="text-sm text-muted-foreground ml-auto flex-shrink-0">
                                         {format(new Date(result.createdAt.seconds * 1000), 'PPP')}
                                     </span>
@@ -309,7 +300,7 @@ export default function ResultsPage() {
                                     }}
                                 >
                                     <Pencil className="h-4 w-4 mr-2" />
-                                    Rename
+                                    {t('common.rename')}
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -321,7 +312,7 @@ export default function ResultsPage() {
                                     }}
                                 >
                                     <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete
+                                    {t('common.delete')}
                                 </Button>
                             </div>
                             <AccordionContent className="p-4 pt-4 text-muted-foreground space-y-4">
@@ -332,10 +323,10 @@ export default function ResultsPage() {
                                          defaultValue={translationState[result.id]?.selectedLanguage || 'English'}
                                      >
                                         <SelectTrigger className="w-[180px]">
-                                            <SelectValue placeholder="Select Language" />
+                                            <SelectValue placeholder={t('zodiac.select_language')} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {languages.map(lang => (
+                                            {allLanguages.map(lang => (
                                                 <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>
                                             ))}
                                         </SelectContent>
@@ -349,7 +340,7 @@ export default function ResultsPage() {
                                         ) : (
                                             <Languages className="mr-2 h-4 w-4" />
                                         )}
-                                        Translate
+                                        {t('common.translate')}
                                     </Button>
                                 </div>
                             </AccordionContent>
@@ -359,10 +350,10 @@ export default function ResultsPage() {
             ) : (
                 <Card className="bg-card/50 backdrop-blur-sm">
                     <CardHeader>
-                        <CardTitle>No Results Yet</CardTitle>
+                        <CardTitle>{t('results.no_results_title')}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-muted-foreground">You haven't performed any readings yet. Go explore the app to get started!</p>
+                        <p className="text-muted-foreground">{t('results.no_results_subtitle')}</p>
                     </CardContent>
                 </Card>
             )}
@@ -370,11 +361,11 @@ export default function ResultsPage() {
             <Dialog open={!!resultToRename} onOpenChange={(open) => !open && setResultToRename(null)}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Rename Result</DialogTitle>
+                        <DialogTitle>{t('results.rename_dialog_title')}</DialogTitle>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="name" className="text-right">Name</Label>
+                            <Label htmlFor="name" className="text-right">{t('results.rename_label')}</Label>
                             <Input
                                 id="name"
                                 value={newName}
@@ -385,11 +376,11 @@ export default function ResultsPage() {
                     </div>
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button type="button" variant="secondary">Cancel</Button>
+                            <Button type="button" variant="secondary">{t('common.cancel')}</Button>
                         </DialogClose>
                         <Button onClick={handleRename} disabled={isRenaming}>
                             {isRenaming && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save
+                            {t('common.save')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -398,14 +389,14 @@ export default function ResultsPage() {
             <AlertDialog open={!!resultToDelete} onOpenChange={(open) => !open && setResultToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogTitle>{t('results.delete_confirm_title')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete this result from our servers.
+                        {t('results.delete_confirm_desc')}
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setResultToDelete(null)}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                    <AlertDialogCancel onClick={() => setResultToDelete(null)}>{t('common.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t('common.delete')}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

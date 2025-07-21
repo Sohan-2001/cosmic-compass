@@ -18,9 +18,9 @@ import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { PlacesAutocomplete } from '@/components/common/places-autocomplete';
-import { horoscopes } from '@/data/horoscopes';
 import { ZodiacIcon } from '@/components/common/zodiac-icons';
 import { format } from 'date-fns';
+import { useTranslation } from '@/context/language-context';
 
 type Step = 'input' | 'confirmation' | 'correction' | 'result';
 
@@ -42,6 +42,7 @@ export default function AstrologyPage() {
   const [result, setResult] = useState<InterpretAstrologicalChartOutput | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -67,7 +68,7 @@ export default function AstrologyPage() {
     } catch (error) {
       console.error('Error determining zodiac sign:', error);
       toast({
-        title: 'Error',
+        title: t('common.error'),
         description: 'Could not determine zodiac sign. Please check the birth date or enter it manually.',
         variant: 'destructive',
       });
@@ -84,9 +85,6 @@ export default function AstrologyPage() {
     const values = form.getValues();
 
     try {
-      // The manual sign from the correction step is no longer needed here,
-      // as the main flow will calculate the sign based on the system.
-      // We still pass the core birth details.
       const chart = await interpretAstrologicalChart({
         birthDate: values.birthDate,
         birthTime: values.birthTime,
@@ -100,7 +98,7 @@ export default function AstrologyPage() {
         await addDoc(collection(db, 'results'), {
           userId: user.uid,
           type: 'astrology',
-          name: `Astrology Reading from ${format(new Date(), 'PPP p')}`,
+          name: `${t('results.type_astrology')} from ${format(new Date(), 'PPP p')}`,
           data: chart,
           createdAt: serverTimestamp(),
         });
@@ -108,7 +106,7 @@ export default function AstrologyPage() {
     } catch (error) {
       console.error('Error interpreting astrological chart:', error);
       toast({
-        title: 'Error',
+        title: t('common.error'),
         description: 'Failed to generate your astrological chart. Please try again.',
         variant: 'destructive',
       });
@@ -117,15 +115,12 @@ export default function AstrologyPage() {
     }
   }
   
-  // This function is now only used if the user explicitly corrects their sign.
-  // The main generateChart function handles both "yes" and "no" paths now.
   async function handleCorrectionSubmit() {
     const zodiacSign = form.getValues('zodiacSign');
     if (!zodiacSign) {
         toast({ title: 'Please select a sign', variant: 'destructive' });
         return;
     }
-    // We move directly to generation after correction.
     await generateChart();
   }
 
@@ -133,8 +128,8 @@ export default function AstrologyPage() {
   const renderInputForm = () => (
     <Card className="mb-8 bg-card/50 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle>Your Birth Information</CardTitle>
-        <CardDescription>Provide accurate details for the most precise reading.</CardDescription>
+        <CardTitle>{t('astrology.form_title')}</CardTitle>
+        <CardDescription>{t('astrology.form_subtitle')}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -144,7 +139,7 @@ export default function AstrologyPage() {
                 name="astrologySystem"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Astrology System</FormLabel>
+                    <FormLabel>{t('astrology.system_label')}</FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -157,7 +152,7 @@ export default function AstrologyPage() {
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Choose the system you prefer for your reading.
+                      {t('astrology.system_description')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -169,7 +164,7 @@ export default function AstrologyPage() {
                 name="birthDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Birth Date</FormLabel>
+                    <FormLabel>{t('astrology.birth_date_label')}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -182,7 +177,7 @@ export default function AstrologyPage() {
                 name="birthTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Birth Time</FormLabel>
+                    <FormLabel>{t('astrology.birth_time_label')}</FormLabel>
                     <FormControl>
                       <Input type="time" {...field} />
                     </FormControl>
@@ -196,7 +191,7 @@ export default function AstrologyPage() {
               name="birthLocation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Birth Location (City, Country)</FormLabel>
+                  <FormLabel>{t('astrology.birth_location_label')}</FormLabel>
                   <FormControl>
                      <PlacesAutocomplete 
                       onLocationSelect={(location) => form.setValue('birthLocation', location, { shouldValidate: true })}
@@ -211,12 +206,12 @@ export default function AstrologyPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Calculating Sign...
+                  {t('astrology.calculating_sign')}
                 </>
               ) : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Continue
+                  {t('astrology.continue_button')}
                 </>
               )}
             </Button>
@@ -230,18 +225,18 @@ export default function AstrologyPage() {
      <Form {...form}>
       <Card className="mb-8 bg-card/50 backdrop-blur-sm text-center animate-in fade-in-50">
         <CardHeader>
-          <CardTitle>Is this your Zodiac Sign?</CardTitle>
-          <CardDescription>(Based on Western Astrology)</CardDescription>
+          <CardTitle>{t('astrology.confirmation_title')}</CardTitle>
+          <CardDescription>{t('astrology.confirmation_subtitle')}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
           {determinedSign && <ZodiacIcon sign={determinedSign} className="w-24 h-24 text-accent" />}
           <p className="text-4xl font-headline">{determinedSign}</p>
           <div className="flex gap-4 mt-4">
             <Button onClick={() => generateChart()} disabled={isGenerating} size="lg">
-              <Check className="mr-2" /> Yes, Generate Chart
+              <Check className="mr-2" /> {t('astrology.yes_button')}
             </Button>
             <Button variant="outline" onClick={() => setStep('correction')} disabled={isGenerating}>
-              <X className="mr-2" /> No, Let Me Choose
+              <X className="mr-2" /> {t('astrology.no_button')}
             </Button>
           </div>
            <p className="text-xs text-muted-foreground mt-4">
@@ -256,12 +251,12 @@ export default function AstrologyPage() {
     <Form {...form}>
       <Card className="mb-8 bg-card/50 backdrop-blur-sm animate-in fade-in-50">
         <CardHeader>
-          <CardTitle>Your sign seems different in the selected system.</CardTitle>
-          <CardDescription>To ensure the most accurate reading with the '{form.getValues('astrologySystem')}' system, we will proceed using your birth details directly.</CardDescription>
+          <CardTitle>{t('astrology.correction_title')}</CardTitle>
+          <CardDescription>{t('astrology.correction_description', {system: form.getValues('astrologySystem')})}</CardDescription>
         </CardHeader>
         <CardContent className="text-center">
             <p className="text-muted-foreground mb-6">
-                Astrological systems like Vedic and Western can result in different zodiac signs for the same date. We will use the system you chose to generate the most accurate chart.
+                {t('astrology.correction_info')}
             </p>
           <Button
             onClick={() => generateChart()}
@@ -269,7 +264,7 @@ export default function AstrologyPage() {
             className="w-full mt-6"
           >
             {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
-            Generate My Chart with '{form.getValues('astrologySystem')}'
+            {t('astrology.generate_chart_button', { system: form.getValues('astrologySystem')})}
           </Button>
         </CardContent>
       </Card>
@@ -278,10 +273,10 @@ export default function AstrologyPage() {
 
   const renderResult = () => result && (
     <div className="space-y-6 animate-in fade-in-50">
-      <h2 className="font-headline text-4xl text-center">Your Cosmic Interpretation</h2>
+      <h2 className="font-headline text-4xl text-center">{t('astrology.result_title')}</h2>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Star className="text-accent" /> Personality Traits</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Star className="text-accent" /> {t('astrology.personality_traits')}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground whitespace-pre-wrap">{result.personalityTraits}</p>
@@ -289,7 +284,7 @@ export default function AstrologyPage() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><TrendingUp className="text-accent" /> Life Tendencies</CardTitle>
+          <CardTitle className="flex items-center gap-2"><TrendingUp className="text-accent" /> {t('astrology.life_tendencies')}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground whitespace-pre-wrap">{result.lifeTendencies}</p>
@@ -297,7 +292,7 @@ export default function AstrologyPage() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Sparkles className="text-accent" /> Key Insights</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Sparkles className="text-accent" /> {t('astrology.key_insights')}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground whitespace-pre-wrap">{result.keyInsights}</p>
@@ -305,7 +300,7 @@ export default function AstrologyPage() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Calendar className="text-accent" /> Next Month Forecast</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Calendar className="text-accent" /> {t('astrology.next_month_forecast')}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground whitespace-pre-wrap">{result.nextMonthForecast}</p>
@@ -313,7 +308,7 @@ export default function AstrologyPage() {
       </Card>
        <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><TrendingUp className="text-accent" /> Next 3 Years Forecast</CardTitle>
+          <CardTitle className="flex items-center gap-2"><TrendingUp className="text-accent" /> {t('astrology.next_3_years_forecast')}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground whitespace-pre-wrap">{result.nextThreeYearsForecast}</p>
@@ -321,7 +316,7 @@ export default function AstrologyPage() {
       </Card>
        <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Zap className="text-accent" /> Significant Events</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Zap className="text-accent" /> {t('astrology.significant_events')}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground whitespace-pre-wrap">{result.significantEvents}</p>
@@ -333,8 +328,8 @@ export default function AstrologyPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-12">
-        <h1 className="font-headline text-5xl font-bold">AI Astrology Reading</h1>
-        <p className="text-muted-foreground mt-2">Enter your birth details to reveal your cosmic blueprint.</p>
+        <h1 className="font-headline text-5xl font-bold">{t('astrology.title')}</h1>
+        <p className="text-muted-foreground mt-2">{t('astrology.subtitle')}</p>
       </div>
 
       {step === 'input' && renderInputForm()}
@@ -344,8 +339,8 @@ export default function AstrologyPage() {
       {(isGenerating && step !== 'result') && (
         <div className="flex flex-col items-center justify-center gap-4 text-muted-foreground p-8">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="font-headline text-xl">Generating Your Cosmic Chart...</p>
-            <p>This can take a moment. The cosmos is vast!</p>
+            <p className="font-headline text-xl">{t('astrology.generating_chart')}</p>
+            <p>{t('astrology.generating_chart_info')}</p>
         </div>
       )}
     </div>

@@ -14,6 +14,7 @@ import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
+import { useTranslation } from '@/context/language-context';
 
 export default function FaceReadingPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -22,6 +23,7 @@ export default function FaceReadingPage() {
   const [description, setDescription] = useState('');
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const handleAnalysis = async () => {
     if (!imageDataUri) {
@@ -43,7 +45,7 @@ export default function FaceReadingPage() {
         await addDoc(collection(db, 'results'), {
           userId: user.uid,
           type: 'face-reading',
-          name: `Face Reading from ${format(new Date(), 'PPP p')}`,
+          name: `${t('results.type_face_reading')} from ${format(new Date(), 'PPP p')}`,
           data: analysis,
           createdAt: serverTimestamp(),
         });
@@ -51,7 +53,7 @@ export default function FaceReadingPage() {
     } catch (error) {
       console.error('Error analyzing face image:', error);
       toast({
-        title: 'Error',
+        title: t('common.error'),
         description: 'Failed to analyze the face. Please try again.',
         variant: 'destructive',
       });
@@ -68,13 +70,13 @@ export default function FaceReadingPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-12">
-        <h1 className="font-headline text-5xl font-bold">AI Face Reading</h1>
-        <p className="text-muted-foreground mt-2">Uncover insights into personality and fortune from facial features.</p>
+        <h1 className="font-headline text-5xl font-bold">{t('face_reading.title')}</h1>
+        <p className="text-muted-foreground mt-2">{t('face_reading.subtitle')}</p>
       </div>
 
       <Card className="mb-8 bg-card/50 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle>Upload a Face Image</CardTitle>
+          <CardTitle>{t('face_reading.upload_title')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <ImageUploader 
@@ -83,10 +85,10 @@ export default function FaceReadingPage() {
             disabled={isLoading}
           />
           <div className="space-y-2">
-            <Label htmlFor="description">Optional Description</Label>
+            <Label htmlFor="description">{t('face_reading.optional_description')}</Label>
             <Textarea
               id="description"
-              placeholder="Any additional information (e.g., age, context)..."
+              placeholder={t('face_reading.description_placeholder')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={isLoading}
@@ -96,12 +98,12 @@ export default function FaceReadingPage() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Analyzing...
+                {t('face_reading.analyzing')}
               </>
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4" />
-                Read This Face
+                {t('face_reading.read_face_button')}
               </>
             )}
           </Button>
@@ -110,17 +112,17 @@ export default function FaceReadingPage() {
 
       {result && (
         <div className="space-y-6 animate-in fade-in-50">
-          <h2 className="font-headline text-4xl text-center">Your Face Reading Analysis</h2>
+          <h2 className="font-headline text-4xl text-center">{t('face_reading.result_title')}</h2>
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><User className="text-accent" /> Summary</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><User className="text-accent" /> {t('face_reading.summary')}</CardTitle></CardHeader>
             <CardContent><p className="text-muted-foreground whitespace-pre-wrap">{result.summary}</p></CardContent>
           </Card>
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Star className="text-accent" /> Personality Insights</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Star className="text-accent" /> {t('face_reading.personality_insights')}</CardTitle></CardHeader>
             <CardContent><p className="text-muted-foreground whitespace-pre-wrap">{result.personalityInsights}</p></CardContent>
           </Card>
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Sparkles className="text-accent" /> Fortune Prediction</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Sparkles className="text-accent" /> {t('face_reading.fortune_prediction')}</CardTitle></CardHeader>
             <CardContent><p className="text-muted-foreground whitespace-pre-wrap">{result.fortunePrediction}</p></CardContent>
           </Card>
         </div>

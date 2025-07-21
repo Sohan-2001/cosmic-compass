@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { UploadCloud, X } from 'lucide-react';
+import { useTranslation } from '@/context/language-context';
 
 interface ImageUploaderProps {
   onImageUpload: (dataUri: string) => void;
@@ -18,6 +19,7 @@ interface ImageUploaderProps {
 export function ImageUploader({ onImageUpload, onImageClear, disabled }: ImageUploaderProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,11 +74,11 @@ export function ImageUploader({ onImageUpload, onImageClear, disabled }: ImageUp
                     <div className="flex flex-col items-center justify-center gap-2 rounded-md border border-input p-6 transition-colors hover:bg-accent hover:text-accent-foreground">
                         <UploadCloud className="h-10 w-10" />
                         <div>
-                            <p className="font-semibold">Click to upload</p>
-                            <p className="text-xs">or drag and drop</p>
+                            <p className="font-semibold">{t('uploader.click_to_upload')}</p>
+                            <p className="text-xs">{t('uploader.drag_and_drop')}</p>
                         </div>
                     </div>
-                    <p className="mt-2 text-xs">PNG, JPG, or WEBP (max 4MB)</p>
+                    <p className="mt-2 text-xs">{t('uploader.file_types')}</p>
                 </Label>
                 <Input
                     id="file-upload"
