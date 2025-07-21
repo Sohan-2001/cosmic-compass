@@ -1,4 +1,5 @@
 
+
 // src/data/ui-text.ts
 
 export const uiText = {
@@ -31,6 +32,44 @@ export const uiText = {
   "home.title": "Astro AI",
   "home.subtitle": "Unlock the secrets of the cosmos. Explore your destiny with AI-powered astrology, palmistry, and face reading.",
   "home.daily_horoscopes": "Daily Horoscopes",
+
+  // Horoscopes
+  "horoscope.Aries.sign": "Aries",
+  "horoscope.Aries.dateRange": "Mar 21 - Apr 19",
+  "horoscope.Aries.reading": "A new surge of energy will propel you forward today. Channel it into a project you're passionate about. An unexpected encounter could be significant.",
+  "horoscope.Taurus.sign": "Taurus",
+  "horoscope.Taurus.dateRange": "Apr 20 - May 20",
+  "horoscope.Taurus.reading": "Focus on grounding yourself. Financial matters may require your attention. Patience will be your greatest asset in conversations with loved ones.",
+  "horoscope.Gemini.sign": "Gemini",
+  "horoscope.Gemini.dateRange": "May 21 - Jun 20",
+  "horoscope.Gemini.reading": "Your curiosity is your guide today. Explore new ideas and connect with different people. A short trip might bring a pleasant surprise.",
+  "horoscope.Cancer.sign": "Cancer",
+  "horoscope.Cancer.dateRange": "Jun 21 - Jul 22",
+  "horoscope.Cancer.reading": "Your intuition is heightened. Trust your gut feelings, especially in matters of the heart and home. It's a good day for creative expression.",
+  "horoscope.Leo.sign": "Leo",
+  "horoscope.Leo.dateRange": "Jul 23 - Aug 22",
+  "horoscope.Leo.reading": "The spotlight finds you today, Leo. Share your talents and lead with confidence. A bold move in your career could pay off handsomely.",
+  "horoscope.Virgo.sign": "Virgo",
+  "horoscope.Virgo.dateRange": "Aug 23 - Sep 22",
+  "horoscope.Virgo.reading": "Organization is key. Tidy up your space and your schedule to create clarity. A focus on health and wellness will bring you peace.",
+  "horoscope.Libra.sign": "Libra",
+  "horoscope.Libra.dateRange": "Sep 23 - Oct 22",
+  "horoscope.Libra.reading": "Balance is your theme. Seek harmony in your relationships and partnerships. A diplomatic approach will solve any conflicts that arise.",
+  "horoscope.Scorpio.sign": "Scorpio",
+  "horoscope.Scorpio.dateRange": "Oct 23 - Nov 21",
+  "horoscope.Scorpio.reading": "Transformation is in the air. Let go of what no longer serves you to make room for the new. Your intensity can uncover hidden truths.",
+  "horoscope.Sagittarius.sign": "Sagittarius",
+  "horoscope.Sagittarius.dateRange": "Nov 22 - Dec 21",
+  "horoscope.Sagittarius.reading": "Adventure calls your name. Step out of your comfort zone and expand your horizons. Learning something new will be especially rewarding.",
+  "horoscope.Capricorn.sign": "Capricorn",
+  "horoscope.Capricorn.dateRange": "Dec 22 - Jan 19",
+  "horoscope.Capricorn.reading": "Your hard work is about to be recognized. Stay disciplined and focused on your long-term goals. A practical decision will lead to success.",
+  "horoscope.Aquarius.sign": "Aquarius",
+  "horoscope.Aquarius.dateRange": "Jan 20 - Feb 18",
+  "horoscope.Aquarius.reading": "Your unique perspective is needed. Share your innovative ideas with your community. Social connections bring opportunities for growth.",
+  "horoscope.Pisces.sign": "Pisces",
+  "horoscope.Pisces.dateRange": "Feb 19 - Mar 20",
+  "horoscope.Pisces.reading": "Your dreams and imagination are vivid today. Pay attention to your creative impulses. A compassionate act will bring you unexpected joy.",
 
   // Astrology Page
   "astrology.title": "AI Astrology Reading",

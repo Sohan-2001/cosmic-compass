@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { horoscopes } from '@/data/horoscopes';
+import { horoscopeSigns } from '@/data/horoscopes';
 import { ZodiacIcon } from '@/components/common/zodiac-icons';
 import { useTranslation } from '@/context/language-context';
 
@@ -23,17 +23,17 @@ export default function Home() {
       <section>
         <h2 className="font-headline text-4xl text-center mb-8">{t('home.daily_horoscopes')}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {horoscopes.map((horoscope) => (
-            <Card key={horoscope.sign} className="bg-card/50 backdrop-blur-sm border-border/20 hover:border-accent/50 transition-colors duration-300">
+          {horoscopeSigns.map((sign) => (
+            <Card key={sign} className="bg-card/50 backdrop-blur-sm border-border/20 hover:border-accent/50 transition-colors duration-300">
               <CardHeader className="flex flex-row items-center gap-4">
-                <ZodiacIcon sign={horoscope.sign} className="w-10 h-10 text-accent" />
+                <ZodiacIcon sign={sign} className="w-10 h-10 text-accent" />
                 <div>
-                  <CardTitle className="font-headline text-2xl">{horoscope.sign}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{horoscope.dateRange}</p>
+                  <CardTitle className="font-headline text-2xl">{t(`horoscope.${sign}.sign`)}</CardTitle>
+                  <p className="text-sm text-muted-foreground">{t(`horoscope.${sign}.dateRange`)}</p>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-foreground/80">{horoscope.reading}</p>
+                <p className="text-foreground/80">{t(`horoscope.${sign}.reading`)}</p>
               </CardContent>
             </Card>
           ))}

@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { getZodiacDetails, type GetZodiacDetailsOutput } from '@/ai/flows/get-zodiac-details';
 import { translateObject } from '@/ai/flows/translate-text';
-import { horoscopes } from '@/data/horoscopes';
+import { horoscopeSigns } from '@/data/horoscopes';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Sparkles, Star, Heart, Briefcase, Bone, Shield, Sun, Droplets, Wind, Mountain, Languages } from 'lucide-react';
@@ -142,7 +142,7 @@ export default function ZodiacSignsPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-12">
-        {horoscopes.map(({ sign }) => (
+        {horoscopeSigns.map((sign) => (
           <Button
             key={sign}
             variant={selectedSign?.sign === sign ? 'secondary' : 'outline'}
@@ -151,7 +151,7 @@ export default function ZodiacSignsPage() {
             className="flex flex-col h-24 gap-2"
           >
             <ZodiacIcon sign={sign} className="w-8 h-8 text-accent" />
-            <span className="font-semibold">{sign}</span>
+            <span className="font-semibold">{t(`horoscope.${sign}.sign`)}</span>
           </Button>
         ))}
       </div>
