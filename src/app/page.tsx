@@ -21,7 +21,7 @@ export default function Home() {
         </p>
         <div className="relative w-full aspect-[16/9] md:aspect-[16/7] mt-8">
             <Image
-                src="https://sxldi6vsg8pc7vjq.public.blob.vercel-storage.com/image.jpg"
+                src="https://sxldi6vsg8pc7vjq.public.blob.vercel-storage.com/Gemini_Generated_Image_j8tm9zj8tm9zj8tm.png"
                 alt="Mystical astrology collage"
                 fill
                 className="rounded-lg shadow-xl object-cover"
